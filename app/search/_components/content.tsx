@@ -1,5 +1,5 @@
 "use client";
-import { useEffect } from "react";
+import { useEffect, useLayoutEffect, useRef } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowLeft, ArrowRight, Copy } from "lucide-react";
@@ -11,6 +11,7 @@ import {
   searchParamsFor,
 } from "@/features/search/model";
 import { useCatalog } from "@/features/hotels/hooks";
+import { animateEntrance } from "@/lib/animate-entrance";
 import { Feedback, LoadingCards, QueryError } from "@/components/feedback";
 import { Button } from "@/components/ui/button";
 import { FiltersForm } from "./filters";
@@ -31,6 +32,43 @@ export function SearchContent() {
       ?.filter((hotel) => hotel.destination === search?.destination)
       .map((hotel) => hotel.pricePerNight) ?? [];
   const pageCount = Math.max(1, Math.ceil((hotels.data?.total ?? 0) / 10));
+  const cards = useRef<HTMLDivElement>(null);
+  const displayed = useRef<{ search: string; query: string; hotels: string }>(
+    null
+  );
+  const searchKey = search ? searchParamsFor(search).toString() : "";
+  const catalogKey =
+    search && filters ? searchParamsFor(search, filters).toString() : "";
+  const hotelOrder =
+    destination.isSuccess &&
+    isDestinationValid &&
+    hotels.isSuccess &&
+    filters &&
+    filters.page <= pageCount
+      ? hotels.data.data.map(({ id }) => id).join(",")
+      : null;
+
+  useLayoutEffect(() => {
+    if (displayed.current?.search !== searchKey) displayed.current = null;
+    if (hotelOrder === null) return;
+
+    const previous = displayed.current;
+    displayed.current = {
+      search: searchKey,
+      query: catalogKey,
+      hotels: hotelOrder,
+    };
+    // Preserve the last settled result through loading so an applied change
+    // can be compared when its own query resolves.
+    if (
+      hotelOrder &&
+      previous &&
+      previous.query !== catalogKey &&
+      previous.hotels !== hotelOrder
+    )
+      return animateEntrance(cards.current, { opacity: [0.8, 1] }, 0.18);
+  }, [searchKey, catalogKey, hotelOrder]);
+
   useEffect(() => {
     if (search && filters && hotels.isSuccess && filters.page > pageCount)
       router.replace(
@@ -55,11 +93,7 @@ export function SearchContent() {
   return (
     <>
       <div className="mb-1">
-        <SearchForm
-          initial={search}
-          compact
-          key={searchParamsFor(search).toString()}
-        />
+        <SearchForm initial={search} compact key={searchKey} />
       </div>
       <div className="[padding-block:38px_30px] [&_h1]:mb-2.5 [&_>_p:last-child]:mb-0 [&_>_div_>_p:last-child]:mb-0 max-[760.01px]:[padding-block:30px_25px] max-[760.01px]:[&_h1]:text-[33px] max-[760.01px]:[&_>_.muted]:text-[12px] flex items-center justify-between gap-6 [&_h1]:text-[34px] [&_>_button]:bg-transparent [&_>_button]:text-[11px] max-[760.01px]:items-start max-[760.01px]:gap-5 max-[760.01px]:[padding-block:30px_22px] max-[760.01px]:[&_h1]:text-[27px] max-[760.01px]:[&_>_button]:w-9 max-[760.01px]:[&_>_button]:min-w-9 max-[760.01px]:[&_>_button]:p-2 max-[760.01px]:[&_>_button]:text-[0px] max-[760.01px]:[&_>_button]:flex-wrap max-[760.01px]:[&_>_button_svg]:w-4 max-[760.01px]:[&_>_button_svg]:h-4 max-[760.01px]:[&_.muted]:text-[11px]">
         <div>
@@ -166,13 +200,15 @@ export function SearchContent() {
                   </span>
                   <span>Valores em reais</span>
                 </div>
-                {hotels.data.data.map((hotel) => (
-                  <HotelCard
-                    key={hotel.id}
-                    hotel={hotel}
-                    query={params.toString()}
-                  />
-                ))}
+                <div className="flex flex-col gap-4.5" ref={cards}>
+                  {hotels.data.data.map((hotel) => (
+                    <HotelCard
+                      key={hotel.id}
+                      hotel={hotel}
+                      query={params.toString()}
+                    />
+                  ))}
+                </div>
                 {pageCount > 1 && (
                   <nav
                     className="flex items-center justify-center gap-5.5 mt-4 [&_>_span]:text-[11px] [&_>_span]:text-muted-foreground [&_[aria-disabled=true]]:opacity-[0.4] [&_[aria-disabled=true]]:pointer-events-none max-[760.01px]:gap-3 max-[760.01px]:[&_>_span]:text-[9px] max-[760.01px]:[&_>_a]:text-[10px]"

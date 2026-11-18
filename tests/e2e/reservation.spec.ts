@@ -1,8 +1,23 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, type Page } from "@playwright/test";
+import { recordMotion } from "./motion";
 
 test("busca, reserva, proteção de duplo clique e confirmação após refresh", async ({
   page,
 }) => {
+  await runReservation(page, false);
+});
+
+test("jornada mobile respeita movimento reduzido", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await runReservation(page, true);
+});
+
+async function runReservation(page: Page, reducedMotion: boolean) {
+  await recordMotion(page);
+  const motionCount = (duration: number) =>
+    page.locator("html").getAttribute(`data-motion-${duration}`);
+  const oneAnimation = reducedMotion ? null : "1";
   await page.goto("/");
   await page.getByRole("combobox", { name: "Destino" }).fill("sao");
   await page.getByRole("option", { name: /São Paulo, SP/ }).click();
@@ -17,6 +32,13 @@ test("busca, reserva, proteção de duplo clique e confirmação após refresh",
   await page.getByRole("button", { name: "Buscar hotéis" }).click();
   await expect(page).toHaveURL(/\/search\?/);
   await expect(page.getByText(/14 hotéis encontrados/)).toBeVisible();
+  if (reducedMotion) {
+    await page.getByRole("link", { name: "Próxima" }).click();
+    await expect(page.getByText("Mostrando 11–14 de 14")).toBeVisible();
+    expect(await motionCount(180)).toBeNull();
+    await page.getByRole("link", { name: "Anterior" }).click();
+    await expect(page.getByText("Mostrando 1–10 de 14")).toBeVisible();
+  }
   await page.reload();
   await page
     .getByRole("link", { name: /Ver hotel/ })
@@ -30,6 +52,7 @@ test("busca, reserva, proteção de duplo clique e confirmação após refresh",
   await expect(page).toHaveURL(/\/checkout/);
   await page.reload();
   await page.getByLabel("Nome completo").fill("Maria Silva");
+  expect(await motionCount(160)).toBeNull();
   await page.getByLabel("E-mail").fill("maria@example.com");
   const phone = page.getByLabel("Telefone");
   await phone.pressSequentially("119999912345");
@@ -43,12 +66,18 @@ test("busca, reserva, proteção de duplo clique e confirmação após refresh",
   await expect(page.getByText("Informe um CPF válido.")).toBeVisible();
   await page.getByLabel("CPF").fill("52998224725");
   await expect(page.getByLabel("CPF")).toHaveValue("529.982.247-25");
-  await page.getByRole("button", { name: "Ir para pagamento" }).click();
+  await page.getByRole("button", { name: "Ir para pagamento" }).press("Enter");
+  await expect(
+    page.getByRole("heading", { name: "Pagamento simulado", exact: true })
+  ).toBeFocused();
   await page.getByLabel("Número do cartão de teste").fill("4000000000000002");
+  await expect.poll(() => motionCount(160)).toBe(oneAnimation);
+  await expect(page.getByLabel("CPF")).toHaveCount(0);
   await page.getByLabel("Validade").fill("12/99");
   await page.getByLabel("Código de segurança").fill("123");
   await page.getByRole("button", { name: "Simular pagamento" }).click();
   await expect(page.getByText("Pagamento simulado recusado.")).toBeVisible();
+  expect(await motionCount(160)).toBe(oneAnimation);
   await page.getByLabel("Número do cartão de teste").fill("4242424242424242");
   await page.getByRole("button", { name: "Simular pagamento" }).click();
   await page.getByLabel("Código do cupom").fill(" lumina10 ");
@@ -62,6 +91,7 @@ test("busca, reserva, proteção de duplo clique e confirmação após refresh",
   expect(saved).not.toContain("4242424242424242");
   await page.reload();
   await expect(page.getByLabel("Nome completo")).toHaveValue("Maria Silva");
+  expect(await motionCount(160)).toBeNull();
   await expect(phone).toHaveValue("+55 (11) 99999-1234");
   await expect(page.getByLabel("Nome da criança 1")).toHaveValue("Ana Silva");
   await expect(page.getByLabel("CPF")).toHaveValue("");
@@ -130,17 +160,24 @@ test("busca, reserva, proteção de duplo clique e confirmação após refresh",
   await expect(acceptTerms).not.toBeChecked();
   await expect(confirm).toBeDisabled();
   await page.getByRole("button", { name: "Voltar ao pagamento" }).click();
-  await page.getByRole("button", { name: "Voltar para hóspedes" }).click();
+  await page
+    .getByRole("button", { name: "Voltar para hóspedes" })
+    .press("Enter");
+  await expect(
+    page.getByRole("heading", { name: "Hóspedes", exact: true })
+  ).toBeFocused();
   await expect(page.getByLabel("Nome da criança 1")).toHaveValue("Ana Silva");
   await expect(page.getByLabel("CPF")).toHaveValue("529.982.247-25");
   await page.getByRole("button", { name: "Ir para pagamento" }).click();
   await page.getByRole("button", { name: "Simular pagamento" }).click();
   await acceptTerms.check();
+  if (reducedMotion) expect(await motionCount(160)).toBeNull();
   await confirm.dblclick();
   await expect(page).toHaveURL(/\/confirmation\//);
   await expect(
     page.getByRole("heading", { name: "Sua próxima estadia está marcada." })
   ).toBeVisible();
+  await expect.poll(() => motionCount(220)).toBe(oneAnimation);
   expect(creations).toBe(1);
   expect(bookingPayload).toContain("Ana Silva");
   expect(bookingPayload).not.toContain("529.982.247-25");
@@ -153,7 +190,41 @@ test("busca, reserva, proteção de duplo clique e confirmação após refresh",
   await expect(page.getByText("Maria Silva")).toBeVisible();
   await expect(page.getByText("Ana Silva")).toBeVisible();
   await expect(page.getByText("Desconto (LUMINA10)")).toBeVisible();
-});
+  await expect.poll(() => motionCount(220)).toBe(oneAnimation);
+
+  if (reducedMotion) return;
+
+  const bookingPath = new URL(page.url()).pathname.replace(
+    "/confirmation/",
+    "/bookings/"
+  );
+  const bookingRequest = (url: URL) => url.pathname === bookingPath;
+  await page.route(bookingRequest, (route) =>
+    route.fulfill({ status: 403, json: { error: "Falha de teste" } })
+  );
+  await page.evaluate(() => {
+    window.dispatchEvent(new Event("offline"));
+    window.dispatchEvent(new Event("online"));
+  });
+  const retry = page.getByRole("button", { name: "Tentar novamente" });
+  await expect(retry).toBeVisible();
+  await page.unroute(bookingRequest);
+  await retry.click();
+  await expect(page.getByText("Maria Silva")).toBeVisible();
+  expect(await motionCount(220)).toBe("1");
+
+  await page.getByRole("link", { name: "Planejar outra estadia" }).click();
+  await expect(page.getByRole("combobox", { name: "Destino" })).toBeVisible();
+  await page.goBack();
+  await expect(page.getByText("Maria Silva")).toBeVisible();
+  await expect.poll(() => motionCount(220)).toBe("2");
+
+  await page.goto("/confirmation/999999");
+  await expect(
+    page.getByRole("heading", { name: "Reserva não encontrada" })
+  ).toBeVisible();
+  expect(await motionCount(220)).toBeNull();
+}
 
 test("destino vazio e hotel inexistente oferecem recuperação", async ({
   page,

@@ -2,7 +2,13 @@
 
 import Link from "next/link";
 import { ArrowLeft, LoaderCircle } from "lucide-react";
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import {
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type FormEvent,
+} from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
@@ -14,6 +20,7 @@ import { cancellationLabels } from "@/features/hotels/model";
 import { searchParamsFor } from "@/features/search/model";
 import { useCheckout } from "@/features/booking/use-checkout";
 import { useBookingStore } from "@/features/booking/store";
+import { animateEntrance } from "@/lib/animate-entrance";
 import {
   approvedCard,
   declinedCard,
@@ -95,6 +102,8 @@ function CheckoutWizard({
   const [couponError, setCouponError] = useState("");
   const [termsAccepted, setTermsAccepted] = useState(false);
   const heading = useRef<HTMLHeadingElement>(null);
+  const stageForm = useRef<HTMLFormElement>(null);
+  const previousStep = useRef(step);
   const { adults, children } = selection.search;
   const guests = useForm<GuestsStep>({
     resolver: zodResolver(guestsStepSchema),
@@ -125,6 +134,11 @@ function CheckoutWizard({
   }, [coupon, getValues, step, subscribe]);
   useEffect(() => {
     heading.current?.focus();
+  }, [step]);
+  useLayoutEffect(() => {
+    if (previousStep.current === step) return;
+    previousStep.current = step;
+    return animateEntrance(stageForm.current, { opacity: [0.8, 1] }, 0.16);
   }, [step]);
 
   const { hotel, room } = details;
@@ -260,6 +274,7 @@ function CheckoutWizard({
           {step === "guests" && (
             <form
               key="guests"
+              ref={stageForm}
               noValidate
               className="space-y-6"
               onSubmit={guests.handleSubmit(() => setStep("payment"))}
@@ -275,6 +290,7 @@ function CheckoutWizard({
           {step === "payment" && (
             <form
               key="payment"
+              ref={stageForm}
               noValidate
               className="space-y-4"
               onSubmit={payment.handleSubmit(simulate)}
@@ -301,6 +317,7 @@ function CheckoutWizard({
           {step === "review" && (
             <form
               key="review"
+              ref={stageForm}
               className="space-y-5"
               noValidate
               onSubmit={confirm}

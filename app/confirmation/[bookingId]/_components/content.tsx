@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import { useLayoutEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowRight, Check, CalendarDays, UserRound } from "lucide-react";
 import { getBooking } from "@/features/booking/api";
@@ -7,6 +8,7 @@ import { StaySummary } from "@/components/stay-summary";
 import { Button } from "@/components/ui/button";
 import { LoadingCards, Feedback, QueryError } from "@/components/feedback";
 import { ApiError } from "@/lib/api/client";
+import { animateEntrance } from "@/lib/animate-entrance";
 
 export function ConfirmationContent({ bookingId }: { bookingId: string }) {
   const booking = useQuery({
@@ -16,6 +18,39 @@ export function ConfirmationContent({ bookingId }: { bookingId: string }) {
     refetchOnMount: "always",
     gcTime: 0,
   });
+  const icon = useRef<HTMLSpanElement>(null);
+  const playedThisVisit = useRef(false);
+  const { isSuccess } = booking;
+
+  // Next can hide this route and keep its refs alive for history navigation.
+  useLayoutEffect(
+    () => () => {
+      playedThisVisit.current = false;
+    },
+    [bookingId]
+  );
+
+  useLayoutEffect(() => {
+    if (!isSuccess || playedThisVisit.current) return;
+
+    let active = true;
+    let cancel: ReturnType<typeof animateEntrance>;
+    // Let React finish the commit, including its development effect replay.
+    queueMicrotask(() => {
+      if (!active) return;
+      playedThisVisit.current = true;
+      cancel = animateEntrance(
+        icon.current,
+        { transform: ["scale(0.94)", "scale(1)"] },
+        0.22
+      );
+    });
+    return () => {
+      active = false;
+      cancel?.();
+    };
+  }, [bookingId, isSuccess]);
+
   if (booking.isPending) return <LoadingCards count={2} />;
   if (booking.isError)
     return booking.error instanceof ApiError && booking.error.status === 404 ? (
@@ -34,7 +69,10 @@ export function ConfirmationContent({ bookingId }: { bookingId: string }) {
   return (
     <>
       <div className="text-center [padding-block:30px_45px] [&_h1]:text-[clamp(30px,_3vw,_42px)] [&_>_p:last-child]:text-[12px] [&_>_p:last-child]:mb-0 max-[760.01px]:[padding-block:20px_30px] max-[760.01px]:[&_h1]:text-[30px]">
-        <span className="inline-flex w-[65px] h-[65px] items-center justify-center bg-[#e5f2eb] text-positive rounded-[50%] mb-6">
+        <span
+          ref={icon}
+          className="inline-flex w-[65px] h-[65px] items-center justify-center bg-[#e5f2eb] text-positive rounded-[50%] mb-6"
+        >
           <Check size={34} aria-hidden="true" />
         </span>
         <p className="eyebrow text-primary text-[11px] font-[650] tracking-[0.1em] uppercase mb-3">

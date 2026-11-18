@@ -1,5 +1,6 @@
 import { test, expect } from "@playwright/test";
 import seed from "../../mock-api/db.seed.json";
+import { recordMotion } from "./motion";
 
 const query = new URLSearchParams({
   destination: "São Paulo, SP",
@@ -10,6 +11,90 @@ const query = new URLSearchParams({
   rooms: "1",
 });
 const url = `/search?${query}`;
+
+test("anima apenas mudanças visíveis nos cartões do catálogo", async ({
+  page,
+}) => {
+  await recordMotion(page);
+  await page.goto(url);
+  const count = () => page.locator("html").getAttribute("data-motion-180");
+  await expect(page.getByText("Mostrando 1–10 de 14")).toBeVisible();
+  expect(await count()).toBeNull();
+
+  await page.getByLabel("Ordenar por").selectOption("price-desc");
+  expect(await count()).toBeNull();
+  await page.getByRole("button", { name: "Aplicar filtros" }).click();
+  await expect.poll(count).toBe("1");
+
+  await page.getByRole("link", { name: "Próxima" }).click();
+  await expect(page.getByText("Mostrando 11–14 de 14")).toBeVisible();
+  await expect.poll(count).toBe("2");
+
+  await page.getByLabel("Mínimo (R$)").fill("99999");
+  await page.getByRole("button", { name: "Aplicar filtros" }).click();
+  await expect(page.getByText("Nenhum hotel por aqui ainda")).toBeVisible();
+  expect(await count()).toBe("2");
+  await page.getByRole("link", { name: "Limpar filtros" }).click();
+  await expect.poll(count).toBe("3");
+
+  await page.getByLabel("Mínimo (R$)").fill("1");
+  await page.getByRole("button", { name: "Aplicar filtros" }).click();
+  await expect(page).toHaveURL(/minPrice=1/);
+  await expect(page.getByText("Mostrando 1–10 de 14")).toBeVisible();
+  expect(await count()).toBe("3");
+
+  const nextPage = (url: URL) =>
+    url.pathname === "/hotels" && url.searchParams.get("_page") === "2";
+  await page.route(nextPage, (route) =>
+    route.fulfill({ status: 403, json: { error: "Falha de teste" } })
+  );
+  await page.getByRole("link", { name: "Próxima" }).click();
+  const retry = page.getByRole("button", { name: "Tentar novamente" });
+  await expect(retry).toBeVisible();
+  expect(await count()).toBe("3");
+  await page.unroute(nextPage);
+  await retry.click();
+  await expect(page.getByText("Mostrando 11–14 de 14")).toBeVisible();
+  await expect.poll(count).toBe("4");
+});
+
+test("anima somente a consulta atual em mudanças rápidas de ordenação", async ({
+  page,
+}) => {
+  await recordMotion(page);
+  const slowSort = (url: URL) =>
+    url.pathname === "/hotels" &&
+    url.searchParams.get("_sort") === "pricePerNight" &&
+    url.searchParams.get("_order") === "desc";
+  const { promise: release, resolve: releaseSlowSort } =
+    Promise.withResolvers<void>();
+  const { promise: slowResponse, resolve: receiveSlowResponse } =
+    Promise.withResolvers<void>();
+  await page.route(slowSort, async (route) => {
+    const response = await route.fetch();
+    receiveSlowResponse();
+    await release;
+    await route.fulfill({ response });
+  });
+  await page.goto(url);
+  await expect(page.getByText("Mostrando 1–10 de 14")).toBeVisible();
+  const sort = page.getByLabel("Ordenar por");
+  const apply = page.getByRole("button", { name: "Aplicar filtros" });
+  await sort.selectOption("price-desc");
+  await apply.click();
+  await slowResponse;
+  await sort.selectOption("rating");
+  await apply.click();
+  const first = seed.hotels
+    .filter((hotel) => hotel.destination === "São Paulo, SP")
+    .sort((a, b) => b.rating - a.rating)[0];
+  const firstCard = page.getByRole("article").first();
+  await expect(firstCard.getByRole("heading")).toHaveText(first.name);
+  releaseSlowSort();
+  await page.unrouteAll({ behavior: "wait" });
+  await expect(firstCard.getByRole("heading")).toHaveText(first.name);
+  await expect(page.locator("html")).toHaveAttribute("data-motion-180", "1");
+});
 
 test("combina filtros, preserva escala, restaura URL, histórico e retorno dos detalhes", async ({
   page,
