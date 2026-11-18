@@ -11,7 +11,8 @@
     "typecheck": "next typegen && tsc --noEmit",
     "test": "vitest run",
     "test:e2e": "playwright test",
-    "format:check": "prettier --check app components features lib scripts tests *.ts *.mts *.json *.mjs README.md docs/prd/*.md"
+    "format:check": "prettier --check app components features lib scripts tests *.ts *.mts *.json *.mjs README.md docs/prd/*.md",
+    "prepare": "husky"
   },
   "dependencies": {
     "@fontsource-variable/montserrat": "^5.3.0",
@@ -43,8 +44,10 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.4.6",
+    "husky": "^9.1.7",
     "jsdom": "^29.1.1",
     "json-server": "^0.17.4",
+    "lint-staged": "^17.6.1",
     "prettier": "^3.10.1",
     "tailwindcss": "4.3.3",
     "typescript": "^5",
