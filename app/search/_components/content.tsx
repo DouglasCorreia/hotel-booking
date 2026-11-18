@@ -1,5 +1,11 @@
 "use client";
-import { useEffect, useLayoutEffect, useRef } from "react";
+import {
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useSyncExternalStore,
+} from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowLeft, ArrowRight, Copy } from "lucide-react";
@@ -14,15 +20,41 @@ import { useCatalog } from "@/features/hotels/hooks";
 import { animateEntrance } from "@/lib/animate-entrance";
 import { Feedback, LoadingCards, QueryError } from "@/components/feedback";
 import { Button } from "@/components/ui/button";
-import { FiltersForm } from "./filters";
+import { FiltersForm, useFiltersForm } from "./filters";
 import { HotelCard } from "./hotel-card";
+import { MobileFilters } from "./mobile-filters";
+
+const mobileCatalog = "(width < 760.01px)";
+
+function subscribeToMobile(callback: () => void) {
+  const media = window.matchMedia(mobileCatalog);
+  media.addEventListener("change", callback);
+  return () => media.removeEventListener("change", callback);
+}
+
+function isMobileCatalog() {
+  return window.matchMedia(mobileCatalog).matches;
+}
+
+function desktopSnapshot() {
+  return false;
+}
 
 export function SearchContent() {
+  const isMobile = useSyncExternalStore(
+    subscribeToMobile,
+    isMobileCatalog,
+    desktopSnapshot
+  );
   const params = useSearchParams();
   const router = useRouter();
   const search = parseSearch(params);
-  const parsedFilters = parseFilters(params);
-  const filters = parsedFilters.success ? parsedFilters.data : null;
+  const query = params.toString();
+  const filters = useMemo(() => {
+    const parsed = parseFilters(new URLSearchParams(query));
+    return parsed.success ? parsed.data : null;
+  }, [query]);
+  const filterForm = useFiltersForm(filters);
   const { hotels, destination, isDestinationValid, options } = useCatalog(
     search,
     filters
@@ -31,6 +63,18 @@ export function SearchContent() {
     options.data
       ?.filter((hotel) => hotel.destination === search?.destination)
       .map((hotel) => hotel.pricePerNight) ?? [];
+  const filterOptions = {
+    min: destinationPrices.length ? Math.min(...destinationPrices) : null,
+    max: destinationPrices.length ? Math.max(...destinationPrices) : null,
+    hasAircon:
+      options.data?.some((hotel) => hotel.amenities.includes("aircon")) ??
+      false,
+    isPending: options.isPending,
+    isError: options.isError,
+    onRetry: () => {
+      void options.refetch();
+    },
+  };
   const pageCount = Math.max(1, Math.ceil((hotels.data?.total ?? 0) / 10));
   const cards = useRef<HTMLDivElement>(null);
   const displayed = useRef<{ search: string; query: string; hotels: string }>(
@@ -95,34 +139,45 @@ export function SearchContent() {
       <div className="mb-1">
         <SearchForm initial={search} compact key={searchKey} />
       </div>
-      <div className="[padding-block:38px_30px] [&_h1]:mb-2.5 [&_>_p:last-child]:mb-0 [&_>_div_>_p:last-child]:mb-0 max-[760.01px]:[padding-block:30px_25px] max-[760.01px]:[&_h1]:text-[33px] max-[760.01px]:[&_>_.muted]:text-[12px] flex items-center justify-between gap-6 [&_h1]:text-[34px] [&_>_button]:bg-transparent [&_>_button]:text-[11px] max-[760.01px]:items-start max-[760.01px]:gap-5 max-[760.01px]:[padding-block:30px_22px] max-[760.01px]:[&_h1]:text-[27px] max-[760.01px]:[&_>_button]:w-9 max-[760.01px]:[&_>_button]:min-w-9 max-[760.01px]:[&_>_button]:p-2 max-[760.01px]:[&_>_button]:text-[0px] max-[760.01px]:[&_>_button]:flex-wrap max-[760.01px]:[&_>_button_svg]:w-4 max-[760.01px]:[&_>_button_svg]:h-4 max-[760.01px]:[&_.muted]:text-[11px]">
-        <div>
+      <div className="flex items-center justify-between gap-6 [padding-block:38px_30px] [&_h1]:mb-2.5 [&_h1]:text-[34px] max-[760.01px]:items-start max-[760.01px]:gap-3 max-[760.01px]:[padding-block:30px_22px] max-[760.01px]:[&_h1]:text-[27px] max-[760.01px]:[&_.muted]:text-[11px]">
+        <div className="min-w-0 wrap-break-word">
           <p className="eyebrow text-primary text-[11px] font-[650] tracking-[0.1em] uppercase mb-3">
             Seu próximo destino
           </p>
           <h1>{search.destination}</h1>
-          <p className="muted text-muted-foreground">
+          <p className="muted mb-0 text-muted-foreground">
             {hotels.data
               ? `${hotels.data.total} hotéis encontrados`
               : "Encontre um lugar para chamar de seu por alguns dias."}
           </p>
         </div>
-        <Button
-          variant="outline"
-          onClick={async () => {
-            try {
-              await navigator.clipboard.writeText(window.location.href);
-              toast.success("Link da busca copiado.");
-            } catch {
-              toast.error(
-                "Copie o endereço da barra do navegador para compartilhar."
-              );
-            }
-          }}
-        >
-          <Copy aria-hidden="true" />
-          Compartilhar busca
-        </Button>
+        <div className="flex shrink-0 items-center gap-2">
+          <Button
+            variant="outline"
+            className="bg-transparent text-[11px] max-[760.01px]:size-11 max-[760.01px]:p-0"
+            onClick={async () => {
+              try {
+                await navigator.clipboard.writeText(window.location.href);
+                toast.success("Link da busca copiado.");
+              } catch {
+                toast.error(
+                  "Copie o endereço da barra do navegador para compartilhar."
+                );
+              }
+            }}
+          >
+            <Copy aria-hidden="true" />
+            <span className="max-[760.01px]:sr-only">Compartilhar busca</span>
+          </Button>
+          {isMobile && filters && (
+            <MobileFilters
+              form={filterForm}
+              search={search}
+              filters={filters}
+              options={filterOptions}
+            />
+          )}
+        </div>
       </div>
       {!filters ? (
         <Feedback
@@ -135,28 +190,16 @@ export function SearchContent() {
         </Feedback>
       ) : (
         <div className="grid grid-cols-[250px_minmax(0,_1fr)] gap-7 items-start max-[1200.01px]:grid-cols-[220px_minmax(0,_1fr)] max-[1200.01px]:gap-5 max-[760.01px]:grid-cols-[1fr] max-[760.01px]:gap-5.5">
-          <FiltersForm
-            key={params.toString()}
-            search={search}
-            filters={filters}
-            options={{
-              min: destinationPrices.length
-                ? Math.min(...destinationPrices)
-                : null,
-              max: destinationPrices.length
-                ? Math.max(...destinationPrices)
-                : null,
-              hasAircon:
-                options.data?.some((hotel) =>
-                  hotel.amenities.includes("aircon")
-                ) ?? false,
-              isPending: options.isPending,
-              isError: options.isError,
-              onRetry: () => {
-                void options.refetch();
-              },
-            }}
-          />
+          {!isMobile && (
+            <div className="min-w-0 max-[760.01px]:hidden">
+              <FiltersForm
+                form={filterForm}
+                search={search}
+                filters={filters}
+                options={filterOptions}
+              />
+            </div>
+          )}
           <div
             className="min-w-0 flex flex-col gap-4.5"
             aria-live="polite"

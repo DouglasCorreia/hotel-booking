@@ -1,4 +1,5 @@
 "use client";
+import { useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Controller, FormProvider, useForm } from "react-hook-form";
@@ -26,11 +27,24 @@ import {
 import { PriceFilter, type FilterOptions } from "./price-filter";
 
 const propertyLabels = { hotel: "Hotel", pousada: "Pousada", resort: "Resort" };
+const emptyFilters = filterSchema.parse({});
+
+export function useFiltersForm(filters: Filters | null) {
+  const form = useForm<z.input<typeof filterSchema>, unknown, Filters>({
+    resolver: zodResolver(filterSchema),
+    defaultValues: filters ?? emptyFilters,
+  });
+  const { reset } = form;
+  useEffect(() => reset(filters ?? emptyFilters), [filters, reset]);
+  return form;
+}
 
 export function FiltersForm({
   search,
   filters,
   options,
+  form,
+  onCommit,
 }: {
   /** Destino, datas e ocupação preservados ao aplicar ou limpar filtros. */
   search: Search;
@@ -38,12 +52,12 @@ export function FiltersForm({
   filters: Filters;
   /** Escala de diárias do destino, disponibilidade de opções e recuperação de falhas. */
   options: FilterOptions;
+  /** Mantém a mesma edição ao alternar entre a coluna e o painel de filtros. */
+  form: ReturnType<typeof useFiltersForm>;
+  /** Fecha o painel mobile após aplicar ou limpar os filtros. */
+  onCommit?: () => void;
 }) {
   const router = useRouter();
-  const form = useForm<z.input<typeof filterSchema>, unknown, Filters>({
-    resolver: zodResolver(filterSchema),
-    defaultValues: filters,
-  });
   const {
     register,
     handleSubmit,
@@ -65,6 +79,7 @@ export function FiltersForm({
           onSubmit={handleSubmit((values) => {
             const applied = { ...values, page: 1 };
             form.reset(applied);
+            onCommit?.();
             router.push(`/search?${searchParamsFor(search, applied)}`);
           })}
           noValidate
@@ -201,7 +216,10 @@ export function FiltersForm({
               <Button variant="ghost" asChild>
                 <Link
                   href={`/search?${searchParamsFor(search)}`}
-                  onClick={() => form.reset(filterSchema.parse({}))}
+                  onNavigate={() => {
+                    form.reset(emptyFilters);
+                    onCommit?.();
+                  }}
                 >
                   Limpar filtros
                 </Link>

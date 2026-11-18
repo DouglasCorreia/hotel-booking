@@ -6,8 +6,19 @@ import {
   waitFor,
 } from "@testing-library/react";
 import { afterEach, beforeAll, expect, it, vi } from "vitest";
-import { FiltersForm } from "@/app/search/_components/filters";
+import type { ComponentProps } from "react";
+import {
+  FiltersForm as CatalogFiltersForm,
+  useFiltersForm,
+} from "@/app/search/_components/filters";
 import { filterSchema } from "@/features/search/model";
+
+function FiltersForm(
+  props: Omit<ComponentProps<typeof CatalogFiltersForm>, "form">
+) {
+  const form = useFiltersForm(props.filters);
+  return <CatalogFiltersForm {...props} form={form} />;
+}
 
 const { push } = vi.hoisted(() => ({ push: vi.fn() }));
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push }) }));
