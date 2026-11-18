@@ -11,10 +11,15 @@ export function Photo({
   preload = false,
   sizes = "(max-width: 768px) 100vw, 50vw",
 }: {
+  /** URL da imagem. Uma URL ausente ou com falha exibe o aviso de indisponibilidade. */
   src?: string;
+  /** Descrição da imagem. Use texto vazio quando a imagem for decorativa. */
   alt: string;
+  /** Classes do contêiner que controlam a área ocupada pela imagem. */
   className?: string;
+  /** Solicita carregamento prioritário para imagens de destaque. O padrão é `false`. */
   preload?: boolean;
+  /** Largura esperada por viewport. Por padrão, usa `100vw` até 768 px e `50vw` acima disso. */
   sizes?: string;
 }) {
   const [failed, setFailed] = useState<string>();

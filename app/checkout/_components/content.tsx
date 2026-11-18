@@ -80,8 +80,11 @@ function CheckoutWizard({
   selection,
   details,
 }: {
+  /** Estado da revalidação e ações de confirmação e aceite de novo preço. */
   checkout: ReturnType<typeof useCheckout>;
+  /** Acomodação, datas e ocupação da seleção recuperada do estado do checkout. */
   selection: Selection;
+  /** Hotel e quarto devolvidos pela consulta de revalidação do checkout. */
   details: NonNullable<ReturnType<typeof useCheckout>["query"]["data"]>;
 }) {
   const [draft] = useState(() => useBookingStore.getState().draft);

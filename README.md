@@ -218,3 +218,13 @@ A reorganização da instalação e dos arquivos está registrada no [PRD de org
 A ampliação do catálogo está registrada no [PRD de filtros múltiplos](docs/prd/feature-filtros-multiplos.md), que inclui os filtros de comodidades e propriedade antes excluídos do recorte inicial.
 
 O [PRD do checkout em etapas](docs/prd/feature-checkout-em-etapas.md) registra as regras do pagamento simulado, do preço e da recuperação do rascunho.
+
+## Uso de IA e fluxo de trabalho
+
+Usei o Codex para analisar o enunciado, transformar requisitos em especificações, implementar as funcionalidades e verificar o resultado. As decisões de produto foram discutidas antes da implementação. No checkout, por exemplo, defini quais dados seriam recuperados na mesma aba, como o pagamento seria simulado e quais regras seriam usadas para cupom, taxa e imposto.
+
+1. **Análise do desafio.** Comparei o enunciado com o repositório para identificar requisitos obrigatórios, diferenciais opcionais e pontos que ainda precisavam de ajustes.
+2. **Planejamento.** Usei a skill `prd-generator` para detalhar o escopo, as regras de negócio e os critérios de aceite. Para mudanças maiores, como o checkout em etapas, revisei o plano em Plan Mode antes de autorizar a implementação. Os PRDs estão em [`docs/prd/`](docs/prd/).
+3. **Implementação.** Usei as skills `vercel-react-best-practices` e `shadcn` como referência para trabalhar com React, Next.js e os componentes de interface existentes. Mantive a integração com a mock API fornecida e a validação dos dados com Zod.
+4. **Verificação.** Usei Vitest e Testing Library para validar regras e componentes, além de Playwright para exercitar a jornada no navegador. No checkout, verifiquei cenários como recusa simulada, recuperação do rascunho, mudança de diária e confirmação após recarregar.
+5. **Documentação.** Usei a skill `documentation-writer` para conferir a documentação com o código e atualizar a [visão do produto](docs/project-overview.md), a [arquitetura](docs/architecture.md) e as instruções de execução deste README.

@@ -6,7 +6,14 @@ import { Badge } from "@/components/ui/badge";
 import { amenityLabels, type Hotel } from "@/features/hotels/model";
 import { money } from "@/lib/format";
 
-export function HotelCard({ hotel, query }: { hotel: Hotel; query: string }) {
+type HotelCardProps = {
+  /** Resultado do catálogo, com a diária inicial e o estoque agregado do hotel. */
+  hotel: Hotel;
+  /** Parâmetros serializados sem `?`, usados para preservar busca e filtros no link de detalhes. */
+  query: string;
+};
+
+export function HotelCard({ hotel, query }: HotelCardProps) {
   return (
     <article className="grid grid-cols-[230px_minmax(0,_1fr)_180px] bg-white border border-border rounded-[10px] overflow-hidden [&_h2]:text-[17px] [&_h2]:[margin:9px_0_8px] [&_h2]:leading-[1.35] max-[1200.01px]:grid-cols-[190px_minmax(0,_1fr)_155px] max-[1000.01px]:grid-cols-[180px_minmax(0,_1fr)] max-[760.01px]:grid-cols-[1fr] max-[760.01px]:[&_h2]:text-[20px]">
       <Link

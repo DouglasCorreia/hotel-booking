@@ -23,8 +23,11 @@ export function CheckoutField({
   "aria-describedby": describedBy,
   ...props
 }: ComponentProps<typeof Input> & {
+  /** Rótulo visível ligado ao campo pelo identificador gerado. */
   label: string;
+  /** Dica opcional associada ao campo junto aos demais IDs de `aria-describedby`. */
   description?: string;
+  /** Mensagem que marca o campo como inválido e entra na descrição acessível. */
   error?: string;
 }) {
   const id = useId();
@@ -57,8 +60,11 @@ export function GuestFields({
   adults,
   childCount,
 }: {
+  /** Formulário da etapa de hóspedes. O titular ocupa a primeira vaga adulta. */
   form: UseFormReturn<GuestsStep>;
+  /** Total de adultos da seleção, incluindo o titular. */
   adults: number;
+  /** Total de crianças da seleção, usado para montar os campos de acompanhantes. */
   childCount: number;
 }) {
   const {
@@ -139,6 +145,7 @@ export function GuestFields({
 export function PaymentFieldsForm({
   form,
 }: {
+  /** Formulário dos dados de cartão fictício mantidos em memória durante o checkout. */
   form: UseFormReturn<PaymentFields>;
 }) {
   const {

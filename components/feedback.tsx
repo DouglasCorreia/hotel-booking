@@ -13,11 +13,17 @@ export function Feedback({
   linkLabel = "Voltar à busca",
   isEmpty = false,
 }: {
+  /** Título do estado de erro ou de lista vazia. */
   title: string;
+  /** Conteúdo opcional com detalhes ou orientação para recuperação. */
   children?: React.ReactNode;
+  /** Quando fornecido, habilita a ação de tentar novamente. */
   onRetry?: () => void;
+  /** Destino da ação de retorno. O padrão é `/#buscar`. */
   href?: string;
+  /** Texto da ação de retorno. O padrão é “Voltar à busca”. */
   linkLabel?: string;
+  /** Usa o ícone de lista vazia e anuncia o conteúdo como status. O padrão é alerta. */
   isEmpty?: boolean;
 }) {
   const Icon = isEmpty ? SearchX : CircleAlert;
@@ -46,8 +52,11 @@ export function QueryError({
   onRetry,
   title = "Não foi possível carregar",
 }: {
+  /** Erro da consulta. Um `ApiError` 404 exibe o título “Registro não encontrado”. */
   error: Error;
+  /** Dispara uma nova tentativa da consulta que falhou. */
   onRetry: () => void;
+  /** Título para outras falhas. O padrão é “Não foi possível carregar”. */
   title?: string;
 }) {
   return (

@@ -15,19 +15,32 @@ import {
 } from "@/components/ui/field";
 
 export type FilterOptions = {
+  /** Menor diária do destino em reais ou `null` quando a escala está indisponível. */
   min: number | null;
+  /** Maior diária do destino em reais ou `null` quando a escala está indisponível. */
   max: number | null;
+  /** Indica se o catálogo tem alguma hospedagem com ar-condicionado. */
   hasAircon: boolean;
+  /** Indica que a consulta da escala ainda está pendente. */
   isPending: boolean;
+  /** Indica falha na consulta da escala. Os campos numéricos continuam disponíveis. */
   isError: boolean;
+  /** Tenta carregar a escala novamente após uma falha. */
   onRetry: () => void;
 };
+
+type PriceFilterProps = {
+  /** Define a escala do slider. Sem escala, a faixa ainda pode ser digitada. */
+  options: FilterOptions;
+};
+
 const currency = new Intl.NumberFormat("pt-BR", {
   style: "currency",
   currency: "BRL",
 });
 
-export function PriceFilter({ options }: { options: FilterOptions }) {
+/** Sincroniza o slider e os campos numéricos com o formulário de filtros. */
+export function PriceFilter({ options }: PriceFilterProps) {
   const {
     register,
     control,

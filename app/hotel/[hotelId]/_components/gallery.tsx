@@ -4,7 +4,14 @@ import { ArrowLeft, ArrowRight, Expand, X } from "lucide-react";
 import { Photo } from "@/components/photo";
 import { Button } from "@/components/ui/button";
 
-export function Gallery({ images, name }: { images: string[]; name: string }) {
+type GalleryProps = {
+  /** Fotos na ordem do catálogo. A primeira é o destaque e o modal percorre todas. */
+  images: string[];
+  /** Nome do hotel usado no título do modal e nos rótulos das imagens. */
+  name: string;
+};
+
+export function Gallery({ images, name }: GalleryProps) {
   const dialog = useRef<HTMLDialogElement>(null);
   const [current, setCurrent] = useState(0);
   function move(offset: number) {

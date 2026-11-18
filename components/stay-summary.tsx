@@ -19,13 +19,16 @@ export type StaySummaryData = {
   adults: number;
   children: number;
   rooms: number;
+  /** Total salvo para uso quando a reserva não tem composição de preço detalhada. */
   totalPrice?: number;
 };
 export function StaySummary({
   stay,
   pricing,
 }: {
+  /** Dados da estadia. O total salvo vem antes do cálculo por diária, noites e quartos. */
   stay: StaySummaryData;
+  /** Composição da revisão ou da reserva confirmada. Quando presente, define o total exibido. */
   pricing?: PriceBreakdown;
 }) {
   const nights = nightsBetween(stay.checkIn, stay.checkOut);

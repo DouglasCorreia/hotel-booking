@@ -21,6 +21,8 @@ A mock API é um processo separado do frontend. Usa json-server 0.17, iniciado p
 | `scripts/` e `mock-api/` | Inicialização da mock API e dados demonstrativos.                                                    |
 | `tests/`                 | Testes de regras, componentes, contratos, integração com a mock API e jornadas no navegador.         |
 
+As props de componentes complexos têm JSDoc junto à declaração TypeScript. Os comentários descrevem a origem dos dados, valores padrão, condições de uso e a precedência entre opções quando isso afeta quem usa o componente.
+
 ## Renderização e integração HTTP
 
 - As entradas das rotas são Server Components. Os formulários, filtros e consultas interativas ficam em Client Components. O projeto habilita Cache Components e prefetch parcial. Os parâmetros das rotas de hotel e confirmação são resolvidos sob Suspense.

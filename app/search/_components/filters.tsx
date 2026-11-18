@@ -32,8 +32,11 @@ export function FiltersForm({
   filters,
   options,
 }: {
+  /** Destino, datas e ocupação preservados ao aplicar ou limpar filtros. */
   search: Search;
+  /** Filtros aplicados na URL que inicializam a edição local. Aplicar volta à página 1. */
   filters: Filters;
+  /** Escala de diárias do destino, disponibilidade de opções e recuperação de falhas. */
   options: FilterOptions;
 }) {
   const router = useRouter();

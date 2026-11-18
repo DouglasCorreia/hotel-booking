@@ -17,9 +17,13 @@ export function RoomCard({
   search,
   onSelect,
 }: {
+  /** Tipo de quarto exibido, incluindo diária, capacidade e unidades disponíveis. */
   room: Room;
+  /** Hotel aberto na rota, usado para validar o vínculo do quarto. */
   hotelId: number;
+  /** Contexto de datas e ocupação. `null` permite ver o quarto e impede selecioná-lo. */
   search: Search | null;
+  /** Acionado pelo botão de seleção quando o quarto atende ao contexto da busca. */
   onSelect: () => void;
 }) {
   const problem = search

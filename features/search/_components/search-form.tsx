@@ -32,8 +32,11 @@ export function SearchForm({
   compact = false,
   onSearch,
 }: {
+  /** Valores usados na montagem. Na ausência, o formulário usa a busca padrão. */
   initial?: Search;
+  /** Usa a variante compacta do formulário. O padrão é `false`. */
   compact?: boolean;
+  /** Recebe a busca validada e substitui a navegação padrão para `/search`. */
   onSearch?: (values: Search) => void;
 }) {
   const router = useRouter();

@@ -4,6 +4,7 @@ import * as SliderPrimitive from "@radix-ui/react-slider";
 import { cn } from "@/lib/utils";
 
 type SliderProps = React.ComponentProps<typeof SliderPrimitive.Root> & {
+  /** Props de cada controle, na mesma ordem de `value` ou `defaultValue`. */
   thumbProps?: React.ComponentProps<typeof SliderPrimitive.Thumb>[];
 };
 
