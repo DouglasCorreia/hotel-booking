@@ -1,0 +1,10 @@
+node_modules
+.next
+.npm-cache
+.npm-cli
+mock-api/*.json
+package-lock.json
+.agents
+.claude
+test-results
+playwright-report

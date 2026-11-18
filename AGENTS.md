@@ -7,3 +7,14 @@ This version has breaking changes — APIs, conventions, and file structure may 
 This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
 
 <!-- END:nextjs-agent-rules -->
+
+# Contexto do projeto
+
+- Visão do produto: `docs/project-overview.md`
+- Arquitetura técnica: `docs/architecture.md`
+
+# Diretrizes essenciais
+
+- Nunca exponha `SUPABASE_SERVICE_ROLE_KEY` ou o admin client ao navegador.
+- Valide entradas externas com Zod.
+- Prefira Server Components; use Client Components somente quando necessário.
