@@ -1,7 +1,11 @@
 import { CalendarDays, Users, BedDouble, Check } from "lucide-react";
 import { Photo } from "@/components/photo";
 import { displayDate, money } from "@/lib/format";
-import { nightsBetween, calculateTotal } from "@/features/booking/model";
+import {
+  nightsBetween,
+  calculateTotal,
+  type PriceBreakdown,
+} from "@/features/booking/model";
 
 export type StaySummaryData = {
   hotelName: string;
@@ -17,8 +21,18 @@ export type StaySummaryData = {
   rooms: number;
   totalPrice?: number;
 };
-export function StaySummary({ stay }: { stay: StaySummaryData }) {
+export function StaySummary({
+  stay,
+  pricing,
+}: {
+  stay: StaySummaryData;
+  pricing?: PriceBreakdown;
+}) {
   const nights = nightsBetween(stay.checkIn, stay.checkOut);
+  const total =
+    pricing?.total ??
+    stay.totalPrice ??
+    calculateTotal(stay.pricePerNight, nights, stay.rooms);
   return (
     <aside className="stay-summary bg-white border border-border rounded-[10px] overflow-hidden [&_>_.photo]:h-[190px]">
       <Photo
@@ -63,24 +77,37 @@ export function StaySummary({ stay }: { stay: StaySummaryData }) {
         </p>
         <div className="flex justify-between gap-2.5 border-t border-t-border pt-5 text-[10px] text-muted-foreground [&_strong]:text-foreground [&_strong]:font-[550] [&_strong]:whitespace-nowrap">
           <span>
+            {pricing && (
+              <span className="block font-semibold text-foreground">
+                Subtotal da hospedagem
+              </span>
+            )}
             {money(stay.pricePerNight)} × {nights} noite(s) × {stay.rooms}{" "}
             quarto(s)
           </span>
-          <strong>
-            {money(
-              stay.totalPrice ??
-                calculateTotal(stay.pricePerNight, nights, stay.rooms)
-            )}
-          </strong>
+          <strong>{money(pricing?.subtotal ?? total)}</strong>
         </div>
+        {pricing && (
+          <dl className="mt-3 space-y-2 text-xs [&>div]:flex [&>div]:justify-between [&>div]:gap-2 [&_dd]:font-semibold">
+            <div>
+              <dt>Desconto{pricing.coupon && ` (${pricing.coupon})`}</dt>
+              <dd>
+                {pricing.discount ? `−${money(pricing.discount)}` : money(0)}
+              </dd>
+            </div>
+            <div>
+              <dt>Taxa de serviço simulada</dt>
+              <dd>{money(pricing.serviceFee)}</dd>
+            </div>
+            <div>
+              <dt>Imposto simulado</dt>
+              <dd>{money(pricing.tax)}</dd>
+            </div>
+          </dl>
+        )}
         <div className="flex justify-between items-center gap-[15px] mt-5.5 [&_>_span]:text-[12px] [&_>_span]:font-semibold [&_>_strong]:text-primary [&_>_strong]:text-[24px] [&_>_strong]:font-[750] [&_>_strong]:tracking-[-0.04em] [&_>_strong]:whitespace-nowrap max-[1000.01px]:[&_>_strong]:text-[21px] max-[760.01px]:[&_>_strong]:text-[26px] max-[360.01px]:[&_>_strong]:text-[22px]">
           <span>Total da estadia</span>
-          <strong>
-            {money(
-              stay.totalPrice ??
-                calculateTotal(stay.pricePerNight, nights, stay.rooms)
-            )}
-          </strong>
+          <strong>{money(total)}</strong>
         </div>
         <p className="text-[9px] text-muted-foreground text-right [margin:5px_0_0]">
           Reserva demonstrativa. Nenhum valor será cobrado.

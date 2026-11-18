@@ -15,6 +15,6 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 # Diretrizes essenciais
 
-- Nunca exponha `NEXT_PUBLIC_API_URL` ou o admin client ao navegador.
+- Nunca exponha o admin client ao navegador.
 - Valide entradas externas com Zod.
 - Prefira Server Components; use Client Components somente quando necessário.

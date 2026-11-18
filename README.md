@@ -37,7 +37,8 @@ Abra [Lumina Hotels](http://localhost:3000). O endereço do backend é configura
 - Busca compartilhável pela URL, dez hotéis por página, filtros de diária/avaliação e ordenação.
 - Detalhes, galeria ampliada, comodidades, políticas e seleção de um tipo de quarto.
 - Validação de estoque e capacidade incluindo crianças, com um adulto por quarto.
-- Checkout com nome, e-mail e telefone; seleção recuperada na mesma aba.
+- Checkout em três etapas com dados por hóspede, CPF do titular, pagamento simulado e rascunho na mesma aba.
+- Cupom, taxa e imposto demonstrativos no resumo do preço, com aceite obrigatório dos termos.
 - Revalidação de preço e estoque antes de concluir, com aceitação explícita de novo preço.
 - Criação sem retry automático e proteção contra submissões simultâneas.
 - Confirmação lida da API, com resumo contratado preservado e funcionamento após refresh.
@@ -61,23 +62,23 @@ tests/               Regras, contratos HTTP, checkout e testes de navegador
 docs/prd/            PRD funcional aprovado
 ```
 
-As rotas mantêm suas entradas no servidor; consultas e interações utilizam componentes cliente. A estrutura estática é prerenderizada e as rotas com identificadores usam Suspense. Hotel e quarto são revalidados em paralelo no checkout. A URL é a fonte da busca; TanStack Query controla dados remotos; Zustand guarda somente identificação da seleção, contexto e diária aceita em `sessionStorage`. Os dados do titular permanecem no formulário em memória e são enviados à API apenas na criação.
+As rotas mantêm suas entradas no servidor. Consultas e interações utilizam componentes cliente. A estrutura estática é prerenderizada e as rotas com identificadores usam Suspense. Hotel e quarto são revalidados em paralelo no checkout. A URL é a fonte da busca e TanStack Query controla dados remotos. Zustand guarda em `sessionStorage` a seleção e o rascunho com nomes, contato, cupom e progresso. CPF e cartão ficam apenas em memória.
 
 O cliente HTTP valida respostas com Zod, aplica timeout de 12 segundos e distingue ausência, falha de serviço e resultado incerto. Consultas podem ter duas novas tentativas; mutações nunca são repetidas automaticamente. O bloqueio síncrono do checkout evita dois envios antes de React atualizar o botão.
 
-Não há novos endpoints. As reservas usam o armazenamento flexível existente para salvar o titular mínimo e um resumo das condições contratadas. Os contratos utilizados pela aplicação são definidos com Zod e seus tipos são derivados dos schemas em `features/hotels/model.ts` e `features/booking/model.ts`. Não há uma segunda cópia dos tipos dentro dos dados mockados.
+A aplicação usa os endpoints existentes para salvar os hóspedes, o contato do titular, a composição do preço e o registro de aceite. Os contratos utilizados pela aplicação são definidos com Zod e os tipos são derivados dos schemas.
 
 O servidor é uma ferramenta de desenvolvimento executada por `scripts/mock-api.mjs`. Sua dependência `json-server` 0.17 está nas dependências de desenvolvimento do manifesto principal e no lockfile da raiz. A instalação completa na raiz atende tanto o frontend quanto a API; não existe instalação separada do backend.
 
 ## Rotas
 
-| Rota                        | Uso                           |
-| --------------------------- | ----------------------------- |
-| `/`                         | Pesquisa e hotéis em destaque |
-| `/search`                   | Catálogo com contexto na URL  |
-| `/hotel/[hotelId]`          | Detalhes e seleção            |
-| `/checkout`                 | Dados do titular e criação    |
-| `/confirmation/[bookingId]` | Consulta da confirmação       |
+| Rota                        | Uso                                    |
+| --------------------------- | -------------------------------------- |
+| `/`                         | Pesquisa e hotéis em destaque          |
+| `/search`                   | Catálogo com contexto na URL           |
+| `/hotel/[hotelId]`          | Detalhes e seleção                     |
+| `/checkout`                 | Hóspedes, pagamento simulado e revisão |
+| `/confirmation/[bookingId]` | Consulta da confirmação                |
 
 ## Verificações
 
@@ -100,7 +101,7 @@ No Windows, a configuração aproveita o Google Chrome quando encontrado no cami
 
 Playwright inicia frontend e API automaticamente quando estão desligados. Localmente reutiliza os serviços em 3000/3333; confira se o frontend existente aponta para a mesma API. Em CI inicia seus próprios processos. Os testes criam reservas demonstrativas no banco transitório.
 
-Os testes cobrem datas inválidas, limite de noites, ocupação, centavos, URL, filtros, contratos incompletos, total de paginação, falhas de criação, mudança de preço, mudança de estoque, duplo envio, ausência de dados pessoais persistidos e jornada de reserva com refresh.
+Os testes cobrem regras de busca e filtros, validação de CPF e cartão, cálculo em centavos, falhas de criação, mudança de preço e estoque, duplo envio, restauração do rascunho e consulta da confirmação após recarregar. CPF e cartão são verificados como ausentes do armazenamento e da requisição de criação.
 
 ## Simular lentidão e erros
 
@@ -183,7 +184,7 @@ Relacionamentos disponíveis: `/hotels/1?_embed=rooms`, `/hotels/1?_embed=review
 - `mock-api/db.seed.json`: dados iniciais versionados; 10 destinos, 60 hotéis, 162 quartos e 328 avaliações.
 - `mock-api/db.json`: cópia de trabalho gerada na inicialização e ignorada pelo Git.
 - A diária do hotel é a menor diária entre seus quartos; `availableRooms` representa o estoque agregado.
-- Os contratos efetivamente aceitos pela aplicação estão nos schemas das features. O checkout envia dados mínimos do titular e o resumo contratado, incluindo preço, hotel e quarto, para preservar a confirmação.
+- Os contratos efetivamente aceitos pela aplicação estão nos schemas das features. A confirmação consulta o resumo salvo na criação e também aceita reservas feitas no formato anterior.
 - O backend não valida o corpo da reserva. A aplicação executa as validações; isso não transforma o mock em um backend de produção.
 
 Na inicialização, os dados iniciais substituem a cópia de trabalho; reservas anteriores deixam de existir. Para alterar os dados de partida, edite o seed e reinicie. O estoque não varia com datas nem diminui ao reservar. O CORS permanece liberado.
@@ -200,10 +201,10 @@ Se a porta estiver ocupada (`EADDRINUSE`), escolha outra com `--port`. Se o fron
 - Estoque é estático, independe das datas e não diminui ao reservar. O frontend valida o que a API informa, sem prometer atomicidade ou segurança de produção.
 - Reservas são apagadas a cada reinício da API; `db.json` é transitório e ignorado pelo Git. Os dados iniciais estão em `db.seed.json`.
 - Não há idempotência no servidor. Se uma criação perder a resposta, a interface avisa que uma nova tentativa pode duplicar a reserva.
-- Dados do titular são gravados na API demonstrativa e consultáveis por identificador, sem autenticação. Use dados fictícios nos testes; não opere este backend com dados reais.
-- O total usa somente diária × noites × quartos. Não são inventados impostos, taxas ou descontos.
+- Nomes dos hóspedes e contato do titular são consultáveis na API demonstrativa por identificador, sem autenticação. Use dados fictícios. CPF e cartão são solicitados novamente ao recarregar e ficam fora da API.
+- O cupom `LUMINA10` dá 10% de desconto sobre diária × noites × quartos. A taxa de serviço de 5% e o imposto de 3% são demonstrações e incidem sobre o subtotal após o desconto.
 - Cada reserva utiliza um único tipo de quarto. Há no mínimo um adulto por quarto e todas as crianças contam na capacidade.
-- Não foram incluídos login, comparação dedicada, reviews, mapas, favoritos, cupons, pagamentos, edição/cancelamento, histórico ou deploy.
+- Login, comparação dedicada, reviews, mapas, favoritos, pagamento real, edição/cancelamento, histórico e deploy ficam fora do escopo.
 - Virtualização e antecipação de detalhes não foram adicionadas: páginas de dez itens não justificam esse custo neste recorte.
 
 Consulte o [PRD](docs/prd/lumina-hotels.md) para as regras e critérios completos.
@@ -211,3 +212,5 @@ Consulte o [PRD](docs/prd/lumina-hotels.md) para as regras e critérios completo
 A reorganização da instalação e dos arquivos está registrada no [PRD de organização da mock-api](docs/prd/feature-organizacao-mock-api.md).
 
 A ampliação do catálogo está registrada no [PRD de filtros múltiplos](docs/prd/feature-filtros-multiplos.md), que inclui os filtros de comodidades e propriedade antes excluídos do recorte inicial.
+
+O [PRD do checkout em etapas](docs/prd/feature-checkout-em-etapas.md) registra as regras do pagamento simulado, do preço e da recuperação do rascunho.

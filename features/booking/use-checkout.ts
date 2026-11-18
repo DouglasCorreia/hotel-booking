@@ -8,11 +8,15 @@ import { ApiError } from "@/lib/api/client";
 import { useBookingStore } from "./store";
 import { createBooking } from "./api";
 import {
-  calculateTotal,
   nightsBetween,
+  priceBreakdown,
   selectionProblem,
-  type Guest,
+  termsVersion,
 } from "./model";
+import {
+  checkoutSubmissionSchema,
+  type CheckoutSubmission,
+} from "./checkout-model";
 
 export function useCheckout() {
   const router = useRouter();
@@ -40,12 +44,21 @@ export function useCheckout() {
     refetchOnMount: "always",
   });
   useEffect(() => {
-    if (isReady && !selection) router.replace("/#buscar");
+    if (isReady && !selection && !lock.current) router.replace("/#buscar");
   }, [isReady, selection, router]);
   const mutation = useMutation({
-    mutationFn: async (guest: Guest) => {
+    mutationFn: async (input: CheckoutSubmission) => {
       if (!selection)
         throw new ApiError("Selecione uma acomodação antes de continuar.");
+      if (!input.termsAccepted)
+        throw new ApiError("Aceite os termos da reserva antes de continuar.");
+      const { guest, companions, coupon } =
+        checkoutSubmissionSchema.parse(input);
+      if (
+        companions.length !==
+        selection.search.adults + selection.search.children - 1
+      )
+        throw new ApiError("Informe o nome de todos os hóspedes da reserva.");
       const { hotel, room } = await client.fetchQuery({
         queryKey,
         queryFn,
@@ -57,19 +70,27 @@ export function useCheckout() {
         throw new ApiError("O destino da seleção mudou. Faça uma nova busca.");
       if (room.pricePerNight !== selection.pricePerNight)
         throw new ApiError(
-          "O preço mudou. Confira o novo total e aceite a atualização antes de continuar.",
+          "O preço mudou. Confira o novo total e aceite a atualização antes de continuar."
         );
+      const pricing = priceBreakdown(
+        room.pricePerNight,
+        nightsBetween(selection.search.checkIn, selection.search.checkOut),
+        selection.search.rooms,
+        coupon
+      );
+      const now = new Date().toISOString();
       return createBooking({
         hotelId: hotel.id,
         roomId: room.id,
         ...selection.search,
         guests: [guest],
-        totalPrice: calculateTotal(
-          room.pricePerNight,
-          nightsBetween(selection.search.checkIn, selection.search.checkOut),
-          selection.search.rooms,
-        ),
-        createdAt: new Date().toISOString(),
+        totalPrice: pricing.total,
+        createdAt: now,
+        checkout: {
+          companions,
+          pricing,
+          terms: { version: termsVersion, acceptedAt: now },
+        },
         snapshot: {
           hotelName: hotel.name,
           hotelImage: hotel.thumbnail,
@@ -83,13 +104,14 @@ export function useCheckout() {
       });
     },
   });
-  async function submit(guest: Guest) {
-    if (lock.current) return;
+  async function submit(input: CheckoutSubmission) {
+    if (lock.current || !selection) return;
     lock.current = true;
     setIssue(null);
     try {
-      const booking = await mutation.mutateAsync(guest);
-      router.replace(`/confirmation/${booking.id}`);
+      const booking = await mutation.mutateAsync(input);
+      useBookingStore.getState().complete(selection);
+      router.replace(`/confirmation/${encodeURIComponent(booking.id)}`);
     } catch (error) {
       setIssue({
         message:
@@ -106,7 +128,7 @@ export function useCheckout() {
       ? (selectionProblem(
           query.data.room,
           query.data.hotel.id,
-          selection.search,
+          selection.search
         ) ??
         (query.data.hotel.destination !== selection.search.destination
           ? "O destino da seleção não corresponde ao hotel."
@@ -119,9 +141,7 @@ export function useCheckout() {
   );
   function acceptPrice() {
     if (selection && query.data) {
-      useBookingStore
-        .getState()
-        .select({ ...selection, pricePerNight: query.data.room.pricePerNight });
+      useBookingStore.getState().acceptPrice(query.data.room.pricePerNight);
       setIssue(null);
     }
   }

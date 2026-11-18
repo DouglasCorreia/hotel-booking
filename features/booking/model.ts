@@ -15,7 +15,7 @@ export function calculateTotal(price: number, nights: number, rooms: number) {
 export function selectionProblem(
   room: { hotelId: number; available: number; maxGuests: number },
   hotelId: number,
-  search: Search,
+  search: Search
 ): string | null {
   if (!searchSchema.safeParse(search).success)
     return "Revise as datas e a ocupação da sua busca.";
@@ -28,15 +28,14 @@ export function selectionProblem(
   return null;
 }
 
+export const fullNameSchema = z
+  .string()
+  .trim()
+  .min(3, "Informe seu nome completo.")
+  .refine((name) => name.split(/\s+/).length >= 2, "Informe nome e sobrenome.");
+
 export const guestSchema = z.object({
-  name: z
-    .string()
-    .trim()
-    .min(3, "Informe seu nome completo.")
-    .refine(
-      (name) => name.split(/\s+/).length >= 2,
-      "Informe nome e sobrenome.",
-    ),
+  name: fullNameSchema,
   email: z.email("Informe um e-mail válido."),
   phone: z.string().refine((value) => {
     const digits = value.replace(/\D/g, "");
@@ -47,6 +46,43 @@ export const guestSchema = z.object({
   }, "Informe um telefone com DDD (10 ou 11 dígitos)."),
 });
 export type Guest = z.infer<typeof guestSchema>;
+
+export const couponCode = "LUMINA10";
+export const couponSchema = z.literal(couponCode).nullable();
+
+const priceLine = z.number().nonnegative();
+const priceBreakdownSchema = z.object({
+  subtotal: priceLine,
+  coupon: couponSchema,
+  discount: priceLine,
+  serviceFee: priceLine,
+  tax: priceLine,
+  total: priceLine,
+});
+export type PriceBreakdown = z.infer<typeof priceBreakdownSchema>;
+
+export function priceBreakdown(
+  price: number,
+  nights: number,
+  rooms: number,
+  coupon: PriceBreakdown["coupon"]
+): PriceBreakdown {
+  const subtotal = Math.round(price * 100) * nights * rooms;
+  const discount = coupon ? Math.round((subtotal * 10) / 100) : 0;
+  const base = subtotal - discount;
+  const serviceFee = Math.round((base * 5) / 100);
+  const tax = Math.round((base * 3) / 100);
+  return {
+    subtotal: subtotal / 100,
+    coupon,
+    discount: discount / 100,
+    serviceFee: serviceFee / 100,
+    tax: tax / 100,
+    total: (base + serviceFee + tax) / 100,
+  };
+}
+
+export const termsVersion = "1";
 export const selectionSchema = z.object({
   hotelId: z.number().int().positive(),
   roomId: z.number().int().positive(),
@@ -79,13 +115,30 @@ export const bookingSchema = z
     totalPrice: z.number().nonnegative(),
     createdAt: z.string(),
     snapshot: snapshotSchema,
+    checkout: z
+      .object({
+        companions: z.array(fullNameSchema),
+        pricing: priceBreakdownSchema,
+        terms: z.object({
+          version: z.string().min(1),
+          acceptedAt: z.iso.datetime(),
+        }),
+      })
+      .optional(),
   })
   .refine(
     (booking) => {
       const nights = nightsBetween(booking.checkIn, booking.checkOut);
       return nights >= 1 && nights <= 30;
     },
-    { message: "A reserva contém um período inválido.", path: ["checkOut"] },
+    { message: "A reserva contém um período inválido.", path: ["checkOut"] }
+  )
+  .refine(
+    ({ checkout, adults, children, totalPrice }) =>
+      !checkout ||
+      (checkout.companions.length === adults + children - 1 &&
+        checkout.pricing.total === totalPrice),
+    { message: "O resumo da reserva é inconsistente.", path: ["checkout"] }
   );
 export type Booking = z.infer<typeof bookingSchema>;
 export type BookingInput = Omit<Booking, "id">;

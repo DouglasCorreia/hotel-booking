@@ -1,10 +1,8 @@
 "use client";
-import { useEffect } from "react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowRight, Check, CalendarDays, UserRound } from "lucide-react";
 import { getBooking } from "@/features/booking/api";
-import { useBookingStore } from "@/features/booking/store";
 import { StaySummary } from "@/components/stay-summary";
 import { Button } from "@/components/ui/button";
 import { LoadingCards, Feedback, QueryError } from "@/components/feedback";
@@ -18,9 +16,6 @@ export function ConfirmationContent({ bookingId }: { bookingId: string }) {
     refetchOnMount: "always",
     gcTime: 0,
   });
-  useEffect(() => {
-    if (booking.isSuccess) useBookingStore.getState().clear();
-  }, [booking.isSuccess]);
   if (booking.isPending) return <LoadingCards count={2} />;
   if (booking.isError)
     return booking.error instanceof ApiError && booking.error.status === 404 ? (
@@ -68,6 +63,16 @@ export function ConfirmationContent({ bookingId }: { bookingId: string }) {
             <strong>{item.guests[0].name}</strong>
             <p>{item.guests[0].email}</p>
             <p>{item.guests[0].phone}</p>
+            {!!item.checkout?.companions.length && (
+              <div className="mt-4 text-sm">
+                <h3 className="font-semibold">Demais hóspedes</h3>
+                <ul className="mt-1 space-y-1">
+                  {item.checkout.companions.map((name, index) => (
+                    <li key={index}>{name}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
           <div className="[&_h2]:flex [&_h2]:items-center [&_h2]:gap-[9px] [&_h2]:text-[15px] [&_h2]:mb-[15px] [&_>_p]:text-[11px] [&_>_p]:text-muted-foreground [&_>_p]:[margin:5px_0] [&_>_p]:[overflow-wrap:anywhere] my-7">
             <h2>
@@ -97,7 +102,10 @@ export function ConfirmationContent({ bookingId }: { bookingId: string }) {
             </Link>
           </Button>
         </section>
-        <StaySummary stay={{ ...item.snapshot, ...item }} />
+        <StaySummary
+          stay={{ ...item.snapshot, ...item }}
+          pricing={item.checkout?.pricing}
+        />
       </div>
     </>
   );

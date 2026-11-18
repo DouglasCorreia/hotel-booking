@@ -7,6 +7,8 @@ import { hotelSchema, roomSchema } from "@/features/hotels/model";
 import database from "@/mock-api/db.seed.json";
 import { getHotel, getRoom } from "@/features/hotels/api";
 import { createBooking } from "@/features/booking/api";
+import { priceBreakdown } from "@/features/booking/model";
+import { ApiError } from "@/lib/api/client";
 
 const { replace } = vi.hoisted(() => ({ replace: vi.fn() }));
 vi.mock("next/navigation", () => ({ useRouter: () => ({ replace }) }));
@@ -21,6 +23,12 @@ const guest = {
   name: "Maria Silva",
   email: "maria@example.com",
   phone: "11999991234",
+};
+const submission = {
+  guest,
+  companions: ["João Silva"],
+  coupon: null,
+  termsAccepted: true,
 };
 const search = {
   destination: hotel.destination,
@@ -53,6 +61,7 @@ beforeEach(() => {
       pricePerNight: room.pricePerNight,
     },
     isReady: true,
+    draft: null,
   });
   vi.mocked(getHotel).mockResolvedValue(hotel);
   vi.mocked(getRoom).mockResolvedValue(room);
@@ -75,22 +84,26 @@ describe("checkout revalida a seleção antes da criação", () => {
     const { result } = setup();
     await waitFor(() => expect(result.current.priceChanged).toBe(true));
     await act(async () => {
-      await result.current.submit(guest);
+      await result.current.submit(submission);
     });
     expect(createBooking).not.toHaveBeenCalled();
     act(() => result.current.acceptPrice());
     await act(async () => {
-      await result.current.submit(guest);
+      await result.current.submit(submission);
     });
     expect(createBooking).toHaveBeenCalledWith(
       expect.objectContaining({
-        totalPrice: (room.pricePerNight + 100) * 3,
+        totalPrice: priceBreakdown(room.pricePerNight + 100, 3, 1, null).total,
+        checkout: expect.objectContaining({
+          companions: submission.companions,
+          terms: expect.objectContaining({ version: "1" }),
+        }),
         snapshot: expect.objectContaining({
           hotelName: hotel.name,
           roomName: room.name,
           pricePerNight: room.pricePerNight + 100,
         }),
-      }),
+      })
     );
     expect(replace).toHaveBeenCalledWith("/confirmation/42");
   });
@@ -99,7 +112,7 @@ describe("checkout revalida a seleção antes da criação", () => {
     await waitFor(() => expect(result.current.query.isSuccess).toBe(true));
     vi.mocked(getRoom).mockResolvedValue({ ...room, available: 0 });
     await act(async () => {
-      await result.current.submit(guest);
+      await result.current.submit(submission);
     });
     expect(createBooking).not.toHaveBeenCalled();
     expect(result.current.issue?.message).toContain("quartos suficientes");
@@ -109,21 +122,90 @@ describe("checkout revalida a seleção antes da criação", () => {
     await waitFor(() => expect(result.current.query.isSuccess).toBe(true));
     await act(async () => {
       await Promise.all([
-        result.current.submit(guest),
-        result.current.submit(guest),
+        result.current.submit(submission),
+        result.current.submit(submission),
       ]);
     });
     expect(createBooking).toHaveBeenCalledTimes(1);
   });
-  it("não persiste os dados do titular na sessão", async () => {
+  it("exige aceite dos termos antes de enviar", async () => {
     const { result } = setup();
     await waitFor(() => expect(result.current.query.isSuccess).toBe(true));
     await act(async () => {
-      await result.current.submit(guest);
+      await result.current.submit({ ...submission, termsAccepted: false });
     });
+    expect(createBooking).not.toHaveBeenCalled();
+    expect(result.current.issue?.message).toContain("termos");
+  });
+
+  it("preserva o rascunho quando a criação falha e limpa após sucesso", async () => {
+    useBookingStore.getState().saveDraft({ ...submission, step: "review" });
+    vi.mocked(createBooking).mockRejectedValueOnce(
+      new ApiError("Falha simulada", 0, true)
+    );
+    const { result } = setup();
+    await waitFor(() => expect(result.current.query.isSuccess).toBe(true));
+    await act(async () => {
+      await result.current.submit(submission);
+    });
+    expect(result.current.issue).toEqual({
+      message: "Falha simulada",
+      uncertain: true,
+    });
+    expect(createBooking).toHaveBeenCalledTimes(1);
+    expect(useBookingStore.getState().draft?.guest).toEqual(guest);
+    await act(async () => {
+      await result.current.submit(submission);
+    });
+    expect(useBookingStore.getState().draft).toBeNull();
     const persisted = sessionStorage.getItem("lumina-selection-v1") ?? "";
     expect(persisted).not.toContain(guest.email);
     expect(persisted).not.toContain(guest.name);
     expect(persisted).not.toContain(guest.phone);
+  });
+});
+
+describe("rascunho do checkout", () => {
+  it("mantém o rascunho em memória quando a sessão não permite gravação", () => {
+    const write = vi
+      .spyOn(Storage.prototype, "setItem")
+      .mockImplementation(() => {
+        throw new DOMException(
+          "Armazenamento indisponível",
+          "QuotaExceededError"
+        );
+      });
+    try {
+      useBookingStore.getState().saveDraft({ ...submission, step: "review" });
+      expect(useBookingStore.getState().draft?.guest).toEqual(guest);
+    } finally {
+      write.mockRestore();
+    }
+  });
+
+  it("descarta o rascunho inválido e conserva a acomodação na hidratação", async () => {
+    const { selection } = useBookingStore.getState();
+    sessionStorage.setItem(
+      "lumina-selection-v1",
+      JSON.stringify({
+        state: {
+          selection,
+          draft: { guest, companions: [], coupon: "inválido", step: "payment" },
+        },
+        version: 0,
+      })
+    );
+    await useBookingStore.persist.rehydrate();
+    expect(useBookingStore.getState().selection).toEqual(selection);
+    expect(useBookingStore.getState().draft).toBeNull();
+  });
+
+  it("preserva o rascunho ao aceitar preço e descarta ao selecionar outro quarto", () => {
+    const state = useBookingStore.getState();
+    state.saveDraft({ ...submission, step: "review" });
+    state.acceptPrice(room.pricePerNight + 100);
+    expect(useBookingStore.getState().draft?.guest).toEqual(guest);
+    state.select({ ...state.selection!, roomId: room.id + 1 });
+    expect(useBookingStore.getState().draft).toBeNull();
   });
 });
