@@ -3,10 +3,14 @@ import { ArrowUpRight, Globe2, Sparkles } from "lucide-react";
 
 export function Brand() {
   return (
-    <Link href="/" className="brand" aria-label="Lumina Hotels — início">
+    <Link
+      href="/"
+      className="brand inline-flex gap-2.5 items-center text-foreground [&_>_svg]:text-primary [&_>_svg]:w-8 [&_>_svg]:h-8 [&_>_span]:text-[32px] [&_>_span]:leading-[1] [&_>_span]:font-[750] [&_>_span]:tracking-[-0.075em] [&_small]:block [&_small]:text-[9px] [&_small]:font-[550] [&_small]:tracking-[0.35em] [&_small]:ml-0.5 [&_small]:mt-[5px] max-[760.01px]:[&_>_span]:text-[27px] max-[760.01px]:[&_>_svg]:w-[27px] max-[760.01px]:[&_>_svg]:h-[27px] max-[360.01px]:gap-[5px] max-[360.01px]:[&_>_span]:text-[23px]"
+      aria-label="Lumina Hotels — início"
+    >
       <Sparkles aria-hidden="true" strokeWidth={1.5} />
       <span>
-        lumina<span className="brand-dot">.</span>
+        lumina<span className="text-primary">.</span>
         <small>hotels</small>
       </span>
     </Link>
@@ -14,16 +18,16 @@ export function Brand() {
 }
 export function Header() {
   return (
-    <header className="site-header">
-      <div className="container header-inner">
+    <header className="bg-white border-b border-b-border">
+      <div className="container w-[min(1280px,_calc(100%_-_80px))] mx-auto max-[1200.01px]:w-[calc(100%_-_56px)] max-[760.01px]:w-[calc(100%_-_36px)] max-[360.01px]:w-[calc(100%_-_28px)] min-h-22 flex items-center gap-15 [&_nav]:flex [&_nav]:gap-8 [&_nav]:items-center [&_nav]:text-[12px] [&_nav]:font-[550] [&_nav_a]:flex [&_nav_a]:gap-1.5 [&_nav_a]:items-center [&_nav_a:hover]:text-primary max-[760.01px]:min-h-[75px] max-[760.01px]:gap-5 max-[760.01px]:[&_nav]:ml-auto max-[760.01px]:[&_nav]:text-[10px] max-[360.01px]:[&_nav]:text-[9px]">
         <Brand />
         <nav aria-label="Navegação principal">
           <Link href="/#buscar">Encontrar uma estadia</Link>
-          <Link href="/#inspiracao" className="desktop-link">
+          <Link href="/#inspiracao" className="max-[760.01px]:hidden!">
             Inspire-se <ArrowUpRight size={14} aria-hidden="true" />
           </Link>
         </nav>
-        <span className="locale">
+        <span className="ml-auto flex gap-2.5 items-center text-[11px] text-muted-foreground whitespace-nowrap [&_>_span]:text-[#b5becc] max-[760.01px]:hidden!">
           <Globe2 size={15} aria-hidden="true" /> PT-BR <span>·</span> BRL
         </span>
       </div>
@@ -37,8 +41,8 @@ async function copyrightYear() {
 export async function Footer() {
   const year = await copyrightYear();
   return (
-    <footer className="site-footer">
-      <div className="container footer-top">
+    <footer className="bg-white">
+      <div className="container w-[min(1280px,_calc(100%_-_80px))] mx-auto max-[1200.01px]:w-[calc(100%_-_56px)] max-[760.01px]:w-[calc(100%_-_36px)] max-[360.01px]:w-[calc(100%_-_28px)] py-12.5 flex justify-between gap-7.5 [&_p]:text-muted-foreground [&_p]:text-[11px] [&_p]:mt-[15px] [&_strong]:text-[14px] [&_a:not(.brand)]:inline-flex [&_a:not(.brand)]:items-center [&_a:not(.brand)]:gap-2.5 [&_a:not(.brand)]:text-primary [&_a:not(.brand)]:text-[11px] max-[760.01px]:flex-col max-[760.01px]:py-[35px]">
         <div>
           <Brand />
           <p>Um novo lugar. Uma nova perspectiva.</p>
@@ -51,7 +55,7 @@ export async function Footer() {
           </Link>
         </div>
       </div>
-      <div className="container footer-bottom">
+      <div className="container w-[min(1280px,_calc(100%_-_80px))] mx-auto max-[1200.01px]:w-[calc(100%_-_56px)] max-[760.01px]:w-[calc(100%_-_36px)] max-[360.01px]:w-[calc(100%_-_28px)] border-t border-t-border py-5.5 text-muted-foreground flex justify-between gap-5 text-[10px] max-[760.01px]:flex-col max-[760.01px]:gap-2.5 max-[760.01px]:text-[9px]">
         <span>© {year} Lumina Hotels</span>
         <span>Projeto demonstrativo · Sem cobrança ou reserva real.</span>
       </div>

@@ -53,11 +53,17 @@ export function PriceFilter({ options }: { options: FilterOptions }) {
   return (
     <FieldSet className="price-filter">
       <FieldLegend>Preço por noite</FieldLegend>
-      <p id="price-format" className="filter-hint">
+      <p
+        id="price-format"
+        className="m-0 text-muted-foreground text-[10px] leading-[1.6]"
+      >
         Valores em reais, com até 2 casas decimais.
       </p>
       {options.isError ? (
-        <div className="price-scale-status" role="status">
+        <div
+          className="flex flex-col items-start gap-2 text-[11px] [&_p]:mb-0 [&_button]:h-auto [&_button]:whitespace-normal [&_button]:text-left"
+          role="status"
+        >
           <p>
             Não foi possível carregar a faixa de preço. Você pode digitar os
             valores.
@@ -72,19 +78,22 @@ export function PriceFilter({ options }: { options: FilterOptions }) {
           </Button>
         </div>
       ) : options.isPending ? (
-        <p className="filter-hint" role="status">
+        <p
+          className="m-0 text-muted-foreground text-[10px] leading-[1.6]"
+          role="status"
+        >
           Carregando faixa de preço…
         </p>
       ) : !hasRange ? (
-        <p className="filter-hint">
+        <p className="m-0 text-muted-foreground text-[10px] leading-[1.6]">
           Não há faixa de preço disponível neste destino.
         </p>
       ) : min === max ? (
-        <p className="filter-hint">
+        <p className="m-0 text-muted-foreground text-[10px] leading-[1.6]">
           Diária única no destino: {currency.format(min)}.
         </p>
       ) : (
-        <div className="price-scale">
+        <div className="[padding:4px_10px_0] [&_[data-slot=slider]]:min-h-8">
           <Slider
             min={min}
             max={max}
@@ -110,13 +119,16 @@ export function PriceFilter({ options }: { options: FilterOptions }) {
               ),
             }))}
           />
-          <div className="price-scale-limits" id="price-scale-limits">
+          <div
+            className="price-scale-limits flex justify-between gap-2 text-muted-foreground text-[10px] tabular-nums"
+            id="price-scale-limits"
+          >
             <span>{currency.format(min)}</span>
             <span>{currency.format(max)}</span>
           </div>
         </div>
       )}
-      <div className="price-inputs">
+      <div className="grid grid-cols-[1fr_1fr] gap-2.5 [&_input]:w-full [&_input]:min-w-0 [&_input]:text-[11px] [&_input]:px-2">
         {(["minPrice", "maxPrice"] as const).map((name) => (
           <Field key={name} data-invalid={!!errors[name]}>
             <FieldLabel htmlFor={name}>
@@ -145,7 +157,10 @@ export function PriceFilter({ options }: { options: FilterOptions }) {
         ))}
       </div>
       {outside && (
-        <p className="filter-hint" role="status">
+        <p
+          className="m-0 text-muted-foreground text-[10px] leading-[1.6]"
+          role="status"
+        >
           Valor fora da escala do destino. O valor digitado será mantido.
         </p>
       )}

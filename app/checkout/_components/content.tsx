@@ -50,11 +50,17 @@ export function CheckoutContent() {
   const { hotel, room } = checkout.query.data;
   return (
     <>
-      <Link className="back-link" href={back}>
+      <Link
+        className="inline-flex items-center gap-[7px] text-[11px] text-muted-foreground mb-[25px] [&:hover]:text-primary"
+        href={back}
+      >
         <ArrowLeft size={15} aria-hidden="true" />
         Voltar para os quartos
       </Link>
-      <ol className="booking-steps" aria-label="Etapas da reserva">
+      <ol
+        className="flex gap-7.5 p-0 [list-style:none] text-[10px] text-muted-foreground [margin:5px_0_5px] [&_li]:flex [&_li]:gap-2 [&_li]:items-center [&_li_>_span]:w-[23px] [&_li_>_span]:h-[23px] [&_li_>_span]:p-1 [&_li_>_span]:rounded-[50%] [&_li_>_span]:bg-[#e9edf5] [&_li_>_span]:text-center [&_li_>_span]:leading-[15px] [&_li_>_svg]:w-[23px] [&_li_>_svg]:h-[23px] [&_li_>_svg]:p-1 [&_li_>_svg]:rounded-[50%] [&_li_>_svg]:bg-[#e9edf5] [&_li_>_svg]:text-center [&_li_>_svg]:leading-[15px] [&_.completed_>_svg]:bg-foreground [&_.completed_>_svg]:text-white [&_.current]:text-primary [&_.current]:font-[650] [&_.current_>_span]:bg-primary [&_.current_>_span]:text-white max-[760.01px]:gap-5 max-[760.01px]:text-[9px]"
+        aria-label="Etapas da reserva"
+      >
         <li className="completed">
           <Check size={13} aria-hidden="true" />
           Escolha
@@ -66,24 +72,26 @@ export function CheckoutContent() {
           <span>3</span>Confirmação
         </li>
       </ol>
-      <div className="page-heading">
-        <p className="eyebrow">Falta pouco</p>
+      <div className="[padding-block:38px_30px] [&_h1]:mb-2.5 [&_>_p:last-child]:mb-0 [&_>_div_>_p:last-child]:mb-0 max-[760.01px]:[padding-block:30px_25px] max-[760.01px]:[&_h1]:text-[33px] max-[760.01px]:[&_>_.muted]:text-[12px]">
+        <p className="eyebrow text-primary text-[11px] font-[650] tracking-[0.1em] uppercase mb-3">
+          Falta pouco
+        </p>
         <h1>
           Sua próxima pausa
           <br />
           está quase aqui.
         </h1>
-        <p className="muted">
+        <p className="muted text-muted-foreground">
           Confira sua estadia e informe os dados do titular.
         </p>
       </div>
-      <div className="checkout-layout">
-        <section className="checkout-form-panel">
+      <div className="grid grid-cols-[minmax(0,_1fr)_400px] gap-[45px] items-start max-[1200.01px]:grid-cols-[minmax(0,_1fr)_360px] max-[1200.01px]:gap-7 max-[1000.01px]:grid-cols-[minmax(0,_1fr)_320px] max-[1000.01px]:gap-5.5 max-[760.01px]:grid-cols-[1fr] max-[760.01px]:gap-[25px] max-[760.01px]:[&_>_.stay-summary]:row-[1] max-[760.01px]:[&_.stay-summary_>_.photo]:h-[150px]">
+        <section className="bg-white border border-border rounded-[10px] p-[35px] [&_>_h2]:flex [&_>_h2]:items-center [&_>_h2]:gap-3 [&_>_h2]:text-[20px] [&_>_h2_svg]:text-primary [&_>_p]:text-[12px] [&_>_p]:mb-7.5 [&_label]:text-[12px] [&_input]:bg-background [&_input]:h-[46px] [&_input]:px-3.5 [&_input]:text-[13px] [&_form]:mt-[25px] [&_[role=alert]]:my-[15px] max-[1000.01px]:p-[25px] max-[1000.01px]:[&_>_h2]:text-[17px] max-[760.01px]:p-5.5">
           <h2>
             <UserRound size={21} aria-hidden="true" />
             Quem vai fazer o check-in?
           </h2>
-          <p className="muted">
+          <p className="muted text-muted-foreground">
             Precisamos apenas dos dados do titular da reserva.
           </p>
           {checkout.problem && (
@@ -163,7 +171,7 @@ export function CheckoutContent() {
                   </AlertDescription>
                 </Alert>
               )}
-              <div className="demo-notice">
+              <div className="bg-secondary border border-[#dce5fa] rounded-[7px] p-4.5 [&_strong]:block [&_strong]:text-[11px] [&_strong]:mb-1.5 [&_p]:text-[11px] [&_p]:text-muted-foreground [&_p]:leading-[1.8] [&_p]:mb-0">
                 <strong>Uma experiência de demonstração</strong>
                 <p>
                   Esta reserva é simulada. Não haverá cobrança, bloqueio real de
@@ -171,7 +179,7 @@ export function CheckoutContent() {
                 </p>
               </div>
               <Button
-                className="checkout-submit"
+                className="w-full h-12 text-[12px]"
                 type="submit"
                 disabled={
                   checkout.mutation.isPending ||
@@ -181,7 +189,7 @@ export function CheckoutContent() {
               >
                 {checkout.mutation.isPending ? (
                   <>
-                    <LoaderCircle className="spin" aria-hidden="true" />
+                    <LoaderCircle className="animate-spin" aria-hidden="true" />
                     Confirmando…
                   </>
                 ) : (

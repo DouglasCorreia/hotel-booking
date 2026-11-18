@@ -19,7 +19,12 @@ export function Photo({
 }) {
   const [failed, setFailed] = useState<string>();
   return (
-    <div className={cn("photo", className)}>
+    <div
+      className={cn(
+        "photo relative overflow-hidden bg-muted [&_img]:object-cover [&_img]:[transition:transform_400ms_ease]",
+        className
+      )}
+    >
       {src && src !== failed ? (
         <Image
           src={src}
@@ -30,7 +35,7 @@ export function Photo({
           onError={() => setFailed(src)}
         />
       ) : (
-        <span className="photo-fallback">
+        <span className="flex items-center justify-center flex-col gap-2 h-full min-h-25 text-muted-foreground text-[12px]">
           <ImageOff aria-hidden="true" />
           <span>Imagem indisponível</span>
         </span>

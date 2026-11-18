@@ -17,7 +17,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html lang="pt-BR" data-scroll-behavior="smooth">
       <body>
         <Providers>
-          <a href="#conteudo" className="skip-link">
+          <a
+            href="#conteudo"
+            className="fixed left-5 -top-20 z-[100] [padding:12px_20px] bg-primary text-white [&:focus]:top-3"
+          >
             Pular para o conteúdo
           </a>
           <Header />

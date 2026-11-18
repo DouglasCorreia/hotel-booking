@@ -12,11 +12,11 @@ export function Gallery({ images, name }: { images: string[]; name: string }) {
   }
   return (
     <>
-      <div className="gallery">
+      <div className="grid grid-cols-[1.7fr_1fr] grid-rows-[190px_190px] gap-3 rounded-[10px] overflow-hidden [&:has(>_:only-child)]:grid-cols-[1fr] max-[760.01px]:grid-rows-[230px_110px] max-[760.01px]:grid-cols-[1fr_1fr] max-[760.01px]:gap-2">
         {(images.length ? images.slice(0, 3) : [undefined]).map(
           (src, index) => (
             <button
-              className={`gallery-item gallery-item-${index}`}
+              className={`border-0 p-0 relative overflow-hidden [&_.photo]:h-full [&:hover_img]:[transform:scale(1.025)] ${index === 0 ? "row-[span_2] max-[760.01px]:row-auto max-[760.01px]:col-[1_/_-1]" : ""}`}
               type="button"
               key={src ?? index}
               aria-label={`Ampliar foto ${index + 1} de ${name}`}
@@ -35,25 +35,25 @@ export function Gallery({ images, name }: { images: string[]; name: string }) {
                 sizes={index === 0 ? "(max-width: 700px) 100vw, 65vw" : "35vw"}
               />
               {index === 0 && (
-                <span className="gallery-expand">
+                <span className="absolute bottom-5 left-5 bg-white rounded-[5px] text-[10px] font-[550] [padding:9px_13px] flex items-center gap-[7px]">
                   <Expand size={14} aria-hidden="true" />
                   Ver fotos
                 </span>
               )}
             </button>
-          ),
+          )
         )}
       </div>
       <dialog
         ref={dialog}
-        className="lightbox"
+        className="w-[min(1000px,_94vw)] max-h-[94vh] border-0 rounded-[10px] m-auto p-5 bg-white [&::backdrop]:bg-[#0c1426d9] [&_.photo]:h-[65vh]"
         aria-labelledby="gallery-title"
         onKeyDown={(event) => {
           if (event.key === "ArrowLeft") move(-1);
           if (event.key === "ArrowRight") move(1);
         }}
       >
-        <div className="lightbox-top">
+        <div className="flex items-center justify-between gap-5 mb-[15px] [&_h2]:text-[18px] [&_h2]:m-0">
           <h2 id="gallery-title">{name}</h2>
           <Button
             variant="outline"
@@ -69,7 +69,7 @@ export function Gallery({ images, name }: { images: string[]; name: string }) {
           alt={`${name} — foto ${current + 1}`}
           sizes="90vw"
         />
-        <div className="lightbox-controls">
+        <div className="flex items-center justify-center gap-5 mt-[15px] text-[12px]">
           <Button
             variant="outline"
             aria-label="Foto anterior"

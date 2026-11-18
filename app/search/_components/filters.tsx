@@ -49,7 +49,10 @@ export function FiltersForm({
   } = form;
   const number = (value: string) => (value === "" ? undefined : Number(value));
   return (
-    <aside className="filters-panel" aria-labelledby="filters-heading">
+    <aside
+      className="bg-white border border-border p-[23px] rounded-[9px] [&_h2]:text-[15px] [&_h2]:tracking-[-0.02em] [&_h2]:flex [&_h2]:gap-[9px] [&_h2]:items-center [&_h2]:mb-[25px] [&&_legend]:text-[12px] [&_legend]:font-semibold [&_legend]:mb-[13px] [&_label]:text-[10px] [&_[data-slot=field-group]]:gap-[23px] [&_.price-filter]:min-w-0 [&_.price-filter]:gap-2.5 [&_.filter-options-set]:min-w-0 [&_.filter-options-set]:gap-2.5 [&_[data-slot=field-legend]]:mb-0 [&_[data-slot=checkbox-group]]:flex [&_[data-slot=checkbox-group]]:flex-col [&_[data-slot=checkbox-group]]:gap-0.5 [&_.filter-option]:min-h-[34px] [&_.filter-option]:gap-2.5 max-[1200.01px]:p-4.5 max-[760.01px]:p-4.5 max-[760.01px]:[&_h2]:mb-[17px] max-[760.01px]:[&_[data-slot=field-group]]:grid max-[760.01px]:[&_[data-slot=field-group]]:grid-cols-[1fr_1fr] max-[760.01px]:[&_[data-slot=field-group]]:gap-[15px] max-[760.01px]:[&_fieldset]:col-[1_/_-1]"
+      aria-labelledby="filters-heading"
+    >
       <h2 id="filters-heading">
         <SlidersHorizontal size={17} aria-hidden="true" />
         Encontre seu ideal
@@ -68,7 +71,7 @@ export function FiltersForm({
             <Field>
               <FieldLabel htmlFor="rating">Avaliação mínima</FieldLabel>
               <select
-                className="select-input"
+                className="block w-full border border-input rounded-[6px] min-h-[38px] text-[11px] text-foreground bg-white p-2"
                 id="rating"
                 {...register("rating", { setValueAs: number })}
               >
@@ -80,7 +83,10 @@ export function FiltersForm({
             </Field>
             <FieldSet className="filter-options-set">
               <FieldLegend>Comodidades</FieldLegend>
-              <p className="filter-hint" id="amenities-hint">
+              <p
+                className="m-0 text-muted-foreground text-[10px] leading-[1.6]"
+                id="amenities-hint"
+              >
                 A hospedagem deve oferecer todas as opções marcadas.
               </p>
               <Controller
@@ -99,7 +105,7 @@ export function FiltersForm({
                         <Field
                           key={value}
                           orientation="horizontal"
-                          className="filter-option"
+                          className="filter-option [&_[data-slot=field-label]]:min-h-[34px] [&_[data-slot=field-label]]:text-[11px] [&_[data-slot=field-label]]:cursor-pointer [&_[data-slot=field-label]]:items-center"
                         >
                           <Checkbox
                             id={`amenity-${value}`}
@@ -127,7 +133,10 @@ export function FiltersForm({
             </FieldSet>
             <FieldSet className="filter-options-set">
               <FieldLegend>Tipo de propriedade</FieldLegend>
-              <p className="filter-hint" id="property-types-hint">
+              <p
+                className="m-0 text-muted-foreground text-[10px] leading-[1.6]"
+                id="property-types-hint"
+              >
                 Mostrar qualquer um dos tipos marcados.
               </p>
               <Controller
@@ -139,7 +148,7 @@ export function FiltersForm({
                       <Field
                         key={value}
                         orientation="horizontal"
-                        className="filter-option"
+                        className="filter-option [&_[data-slot=field-label]]:min-h-[34px] [&_[data-slot=field-label]]:text-[11px] [&_[data-slot=field-label]]:cursor-pointer [&_[data-slot=field-label]]:items-center"
                       >
                         <Checkbox
                           id={`property-${value}`}
@@ -165,15 +174,22 @@ export function FiltersForm({
             </FieldSet>
             <Field>
               <FieldLabel htmlFor="sort">Ordenar por</FieldLabel>
-              <select className="select-input" id="sort" {...register("sort")}>
+              <select
+                className="block w-full border border-input rounded-[6px] min-h-[38px] text-[11px] text-foreground bg-white p-2"
+                id="sort"
+                {...register("sort")}
+              >
                 <option value="price-asc">Menor preço</option>
                 <option value="price-desc">Maior preço</option>
                 <option value="rating">Melhor avaliação</option>
                 <option value="popular">Mais avaliações</option>
               </select>
             </Field>
-            <div className="filter-actions">
-              <p className="filter-pending" role="status">
+            <div className="flex flex-col gap-2.5 col-[1_/_-1]">
+              <p
+                className="min-h-4 m-0 text-muted-foreground text-[10px] leading-[1.6]"
+                role="status"
+              >
                 {isDirty
                   ? "Alterações não aplicadas"
                   : "Ajuste suas preferências e aplique."}
@@ -191,7 +207,7 @@ export function FiltersForm({
           </FieldGroup>
         </form>
       </FormProvider>
-      <p className="filter-note">
+      <p className="border-t border-t-border pt-5.5 text-muted-foreground text-[10px] mt-[25px] mb-0 max-[760.01px]:hidden">
         A diária exibida é a partir do quarto mais econômico de cada hotel.
       </p>
     </aside>

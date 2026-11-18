@@ -80,13 +80,17 @@ export function SearchForm({
   return (
     <form
       id="buscar"
-      className={compact ? "search-panel compact" : "search-panel"}
+      className={
+        compact
+          ? "relative bg-white p-5.5 border border-border rounded-[12px] shadow-[0_8px_30px_#18376307] z-[5] [&_[data-slot=field]]:gap-[7px] [&_[data-slot=field]]:min-w-0 [&_label]:text-[10px] [&_label]:text-[#485670] [&_label]:font-semibold [&_label]:gap-1.5 [&_label_svg]:text-primary [&_input]:w-full [&_input]:h-[43px] [&_input]:bg-secondary [&_input]:border [&_input]:border-transparent [&_input]:shadow-none [&_input]:text-[12px] [&_input]:font-[550] [&_input]:px-[11px] [&_input:focus]:border-primary [&_input[type=date]]:px-[9px] max-[760.01px]:p-[17px] max-[760.01px]:rounded-[9px] compact"
+          : "relative bg-white p-5.5 border border-border rounded-[12px] shadow-[0_8px_30px_#18376307] z-[5] [&_[data-slot=field]]:gap-[7px] [&_[data-slot=field]]:min-w-0 [&_label]:text-[10px] [&_label]:text-[#485670] [&_label]:font-semibold [&_label]:gap-1.5 [&_label_svg]:text-primary [&_input]:w-full [&_input]:h-[43px] [&_input]:bg-secondary [&_input]:border [&_input]:border-transparent [&_input]:shadow-none [&_input]:text-[12px] [&_input]:font-[550] [&_input]:px-[11px] [&_input:focus]:border-primary [&_input[type=date]]:px-[9px] max-[760.01px]:p-[17px] max-[760.01px]:rounded-[9px]"
+      }
       onSubmit={handleSubmit(handleSearch)}
       noValidate
     >
-      <FieldGroup className="search-fields">
+      <FieldGroup className="grid grid-cols-[minmax(190px,_1.6fr)_minmax(145px,_1fr)_minmax(145px,_1fr)_minmax(200px,_1.3fr)_auto] gap-[15px] items-start max-[1200.01px]:grid-cols-[1.4fr_1fr_1fr] max-[760.01px]:grid-cols-[1fr_1fr] max-[760.01px]:gap-[16px_12px]">
         <Field
-          className="destination-field"
+          className="relative max-[760.01px]:col-[1_/_-1]"
           data-invalid={!!errors.destination}
         >
           <FieldLabel htmlFor={`${id}-destination`}>
@@ -147,7 +151,7 @@ export function SearchForm({
             </FieldError>
           )}
           {isOpen && destination.length > 0 && (
-            <div className="suggestions-panel">
+            <div className="absolute top-[78px] left-[-10px] -right-15 bg-white border border-border rounded-[9px] p-[7px] shadow-[0_16px_40px_#131b2e20] z-[20] [&_button]:w-full [&_button]:flex [&_button]:items-center [&_button]:gap-3 [&_button]:text-left [&_button]:border-0 [&_button]:p-3 [&_button]:bg-transparent [&_button]:rounded-[5px] [&_button:hover]:bg-secondary [&_button[aria-selected=true]]:bg-secondary [&_button_>_svg:first-child]:text-primary [&_button_>_svg:last-child]:ml-auto [&_strong]:block [&_strong]:text-[12px] [&_strong]:font-semibold [&_small]:block [&_small]:text-[10px] [&_small]:text-muted-foreground [&_p]:p-3.5 [&_p]:m-0 [&_p]:flex [&_p]:items-center [&_p]:gap-2 [&_p]:text-[11px] max-[760.01px]:right-[-5px] max-[760.01px]:left-[-5px]">
               <div
                 id={`${id}-suggestions`}
                 role="listbox"
@@ -156,7 +160,7 @@ export function SearchForm({
                 {(suggestions.isFetching || isWaiting) && (
                   <p role="status">
                     <LoaderCircle
-                      className="spin"
+                      className="animate-spin"
                       size={15}
                       aria-hidden="true"
                     />
@@ -224,7 +228,7 @@ export function SearchForm({
             )}
           </Field>
         ))}
-        <fieldset className="occupancy-fields">
+        <fieldset className="border-0 p-0 m-0 grid grid-cols-[repeat(3,_minmax(0,_1fr))] gap-[7px] max-[1200.01px]:col-[1_/_3] max-[760.01px]:col-[1_/_-1] max-[760.01px]:gap-3">
           <legend className="sr-only">Hóspedes e quartos</legend>
           {(
             [
@@ -254,7 +258,11 @@ export function SearchForm({
             </Field>
           ))}
         </fieldset>
-        <Button type="submit" className="search-submit" disabled={isSubmitting}>
+        <Button
+          type="submit"
+          className="h-[43px] mt-[21px] px-5 max-[1200.01px]:mt-5 max-[760.01px]:col-[1_/_-1] max-[760.01px]:mt-0 max-[760.01px]:w-full max-[760.01px]:h-[45px]"
+          disabled={isSubmitting}
+        >
           <SearchIcon aria-hidden="true" />
           Buscar hotéis
         </Button>

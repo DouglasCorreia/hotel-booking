@@ -40,10 +40,12 @@ export function SearchContent() {
   if (!search)
     return (
       <>
-        <div className="page-heading">
-          <p className="eyebrow">Vamos começar</p>
+        <div className="[padding-block:38px_30px] [&_h1]:mb-2.5 [&_>_p:last-child]:mb-0 [&_>_div_>_p:last-child]:mb-0 max-[760.01px]:[padding-block:30px_25px] max-[760.01px]:[&_h1]:text-[33px] max-[760.01px]:[&_>_.muted]:text-[12px]">
+          <p className="eyebrow text-primary text-[11px] font-[650] tracking-[0.1em] uppercase mb-3">
+            Vamos começar
+          </p>
           <h1>Encontre sua próxima estadia.</h1>
-          <p className="muted">
+          <p className="muted text-muted-foreground">
             Preencha ou corrija destino, datas e hóspedes para pesquisar.
           </p>
         </div>
@@ -52,18 +54,20 @@ export function SearchContent() {
     );
   return (
     <>
-      <div className="catalog-search">
+      <div className="mb-1">
         <SearchForm
           initial={search}
           compact
           key={searchParamsFor(search).toString()}
         />
       </div>
-      <div className="page-heading results-heading">
+      <div className="[padding-block:38px_30px] [&_h1]:mb-2.5 [&_>_p:last-child]:mb-0 [&_>_div_>_p:last-child]:mb-0 max-[760.01px]:[padding-block:30px_25px] max-[760.01px]:[&_h1]:text-[33px] max-[760.01px]:[&_>_.muted]:text-[12px] flex items-center justify-between gap-6 [&_h1]:text-[34px] [&_>_button]:bg-transparent [&_>_button]:text-[11px] max-[760.01px]:items-start max-[760.01px]:gap-5 max-[760.01px]:[padding-block:30px_22px] max-[760.01px]:[&_h1]:text-[27px] max-[760.01px]:[&_>_button]:w-9 max-[760.01px]:[&_>_button]:min-w-9 max-[760.01px]:[&_>_button]:p-2 max-[760.01px]:[&_>_button]:text-[0px] max-[760.01px]:[&_>_button]:flex-wrap max-[760.01px]:[&_>_button_svg]:w-4 max-[760.01px]:[&_>_button_svg]:h-4 max-[760.01px]:[&_.muted]:text-[11px]">
         <div>
-          <p className="eyebrow">Seu próximo destino</p>
+          <p className="eyebrow text-primary text-[11px] font-[650] tracking-[0.1em] uppercase mb-3">
+            Seu próximo destino
+          </p>
           <h1>{search.destination}</h1>
-          <p className="muted">
+          <p className="muted text-muted-foreground">
             {hotels.data
               ? `${hotels.data.total} hotéis encontrados`
               : "Encontre um lugar para chamar de seu por alguns dias."}
@@ -96,7 +100,7 @@ export function SearchContent() {
           página inválidos no endereço.
         </Feedback>
       ) : (
-        <div className="catalog-layout">
+        <div className="grid grid-cols-[250px_minmax(0,_1fr)] gap-7 items-start max-[1200.01px]:grid-cols-[220px_minmax(0,_1fr)] max-[1200.01px]:gap-5 max-[760.01px]:grid-cols-[1fr] max-[760.01px]:gap-5.5">
           <FiltersForm
             key={params.toString()}
             search={search}
@@ -120,12 +124,12 @@ export function SearchContent() {
             }}
           />
           <div
-            className="catalog-results"
+            className="min-w-0 flex flex-col gap-4.5"
             aria-live="polite"
             aria-busy={hotels.isFetching}
           >
             {hotels.isFetching && (
-              <p className="muted" role="status">
+              <p className="muted text-muted-foreground" role="status">
                 Atualizando hospedagens…
               </p>
             )}
@@ -154,7 +158,7 @@ export function SearchContent() {
               </Feedback>
             ) : (
               <>
-                <div className="result-meta">
+                <div className="flex justify-between text-muted-foreground text-[10px] px-0.5">
                   <span>
                     Mostrando {(filters.page - 1) * 10 + 1}–
                     {Math.min(filters.page * 10, hotels.data.total)} de{" "}
@@ -170,7 +174,10 @@ export function SearchContent() {
                   />
                 ))}
                 {pageCount > 1 && (
-                  <nav className="pagination" aria-label="Paginação dos hotéis">
+                  <nav
+                    className="flex items-center justify-center gap-5.5 mt-4 [&_>_span]:text-[11px] [&_>_span]:text-muted-foreground [&_[aria-disabled=true]]:opacity-[0.4] [&_[aria-disabled=true]]:pointer-events-none max-[760.01px]:gap-3 max-[760.01px]:[&_>_span]:text-[9px] max-[760.01px]:[&_>_a]:text-[10px]"
+                    aria-label="Paginação dos hotéis"
+                  >
                     <Button
                       variant="outline"
                       asChild
