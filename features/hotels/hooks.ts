@@ -6,6 +6,7 @@ import {
   getHotels,
   getRooms,
   getSuggestions,
+  getHotelFilterOptions,
 } from "./api";
 import type { Filters, Search } from "@/features/search/model";
 export function useSuggestions(text: string, enabled = true) {
@@ -43,5 +44,11 @@ export function useCatalog(search: Search | null, filters: Filters | null) {
     queryFn: ({ signal }) => getHotels(search!, filters!, signal),
     enabled: !!search && !!filters && isDestinationValid,
   });
-  return { hotels, destination, isDestinationValid };
+  const options = useQuery({
+    queryKey: ["hotel-filter-options"],
+    queryFn: ({ signal }) => getHotelFilterOptions(signal),
+    enabled: !!search && !!filters && isDestinationValid,
+    staleTime: 5 * 60 * 1000,
+  });
+  return { hotels, destination, isDestinationValid, options };
 }

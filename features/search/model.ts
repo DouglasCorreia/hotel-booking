@@ -57,10 +57,44 @@ export const searchSchema = z
   });
 export type Search = z.infer<typeof searchSchema>;
 
+export const filterAmenities = [
+  "wifi",
+  "pool",
+  "parking",
+  "breakfast",
+  "aircon",
+  "gym",
+  "spa",
+  "restaurant",
+] as const;
+export const propertyTypes = ["hotel", "pousada", "resort"] as const;
+const money = z
+  .number({ error: "Informe um preço válido em reais." })
+  .finite()
+  .nonnegative("O preço não pode ser negativo.")
+  .refine(
+    (value) =>
+      Number.isSafeInteger(Math.round(value * 100)) &&
+      Math.abs(value * 100 - Math.round(value * 100)) < 1e-7,
+    "Use um valor em reais com até duas casas decimais."
+  );
+
 export const filterSchema = z
   .object({
-    minPrice: z.number().finite().nonnegative().optional(),
-    maxPrice: z.number().finite().nonnegative().optional(),
+    minPrice: money.optional(),
+    maxPrice: money.optional(),
+    amenities: z
+      .array(z.enum(filterAmenities))
+      .default([])
+      .transform((values) =>
+        filterAmenities.filter((value) => values.includes(value))
+      ),
+    propertyTypes: z
+      .array(z.enum(propertyTypes))
+      .default([])
+      .transform((values) =>
+        propertyTypes.filter((value) => values.includes(value))
+      ),
     rating: z.number().min(0).max(5).optional(),
     sort: z
       .enum(["price-asc", "price-desc", "rating", "popular"])
@@ -75,12 +109,12 @@ export const filterSchema = z
     {
       message: "O preço máximo deve ser maior ou igual ao mínimo.",
       path: ["maxPrice"],
-    },
+    }
   );
 export type Filters = z.infer<typeof filterSchema>;
 
 export function parseSearch(
-  params: Pick<URLSearchParams, "get">,
+  params: Pick<URLSearchParams, "get">
 ): Search | null {
   const result = searchSchema.safeParse({
     destination: params.get("destination"),
@@ -93,15 +127,21 @@ export function parseSearch(
   return result.success ? result.data : null;
 }
 
-export function parseFilters(params: Pick<URLSearchParams, "get">) {
+export function parseFilters(params: Pick<URLSearchParams, "get" | "getAll">) {
   const number = (key: string) =>
-    params.get(key) === null ? undefined : Number(params.get(key));
+    params.get(key) === null
+      ? undefined
+      : params.get(key)?.trim() === ""
+        ? NaN
+        : Number(params.get(key));
   return filterSchema.safeParse({
     minPrice: number("minPrice"),
     maxPrice: number("maxPrice"),
     rating: number("rating"),
     sort: params.get("sort") ?? undefined,
     page: number("page"),
+    amenities: params.getAll("amenities"),
+    propertyTypes: params.getAll("propertyTypes"),
   });
 }
 
@@ -111,7 +151,9 @@ export function searchParamsFor(search: Search, filters?: Filters) {
     params.set(key, String(value));
   if (filters)
     for (const [key, value] of Object.entries(filters))
-      if (value !== undefined) params.set(key, String(value));
+      if (Array.isArray(value)) {
+        for (const item of value) params.append(key, item);
+      } else if (value !== undefined) params.set(key, String(value));
   return params;
 }
 

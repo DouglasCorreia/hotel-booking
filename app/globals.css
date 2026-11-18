@@ -644,6 +644,77 @@ h3 {
   grid-template-columns: 1fr 1fr;
   gap: 10px;
 }
+.filters-panel .price-filter,
+.filters-panel .filter-options-set {
+  min-width: 0;
+  gap: 10px;
+}
+.filters-panel [data-slot="field-legend"] {
+  margin-bottom: 0;
+}
+.filter-hint {
+  margin: 0;
+  color: var(--muted-foreground);
+  font-size: 10px;
+  line-height: 1.6;
+}
+.price-scale {
+  padding: 4px 10px 0;
+}
+.price-scale [data-slot="slider"] {
+  min-height: 32px;
+}
+.price-scale-limits {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  color: var(--muted-foreground);
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+}
+.price-scale-status {
+  display: flex;
+  flex-direction: column;
+  align-items: start;
+  gap: 8px;
+  font-size: 11px;
+}
+.price-scale-status p {
+  margin-bottom: 0;
+}
+.price-scale-status button {
+  height: auto;
+  white-space: normal;
+  text-align: left;
+}
+.filters-panel [data-slot="checkbox-group"] {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.filters-panel .filter-option {
+  min-height: 34px;
+  gap: 10px;
+}
+.filter-option [data-slot="field-label"] {
+  min-height: 34px;
+  font-size: 11px;
+  cursor: pointer;
+  align-items: center;
+}
+.filter-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  grid-column: 1 / -1;
+}
+.filter-pending {
+  min-height: 16px;
+  margin: 0;
+  color: var(--muted-foreground);
+  font-size: 10px;
+  line-height: 1.6;
+}
 .price-inputs input {
   width: 100%;
   min-width: 0;
@@ -1715,6 +1786,7 @@ h3 {
     min-width: 36px;
     padding: 8px;
     font-size: 0;
+    flex-wrap: wrap;
   }
   .results-heading > button svg {
     width: 16px;

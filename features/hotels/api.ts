@@ -1,14 +1,18 @@
 import { z } from "zod";
 import { request } from "@/lib/api/client";
 import { hotelSchema, roomSchema, suggestionSchema } from "./model";
-import type { Search, Filters } from "@/features/search/model";
+import {
+  filterSchema,
+  type Search,
+  type Filters,
+} from "@/features/search/model";
 
 export const getSuggestions = async (text: string, signal?: AbortSignal) =>
   (
     await request(
       `/suggestions?q=${encodeURIComponent(text)}`,
       z.array(suggestionSchema),
-      { signal },
+      { signal }
     )
   ).data;
 export const getHotel = async (id: number, signal?: AbortSignal) =>
@@ -21,8 +25,9 @@ export const getRooms = async (hotelId: number, signal?: AbortSignal) =>
 export async function getHotels(
   search: Search,
   filters: Filters,
-  signal?: AbortSignal,
+  signal?: AbortSignal
 ) {
+  filters = filterSchema.parse(filters);
   const sorts = {
     "price-asc": ["pricePerNight", "asc"],
     "price-desc": ["pricePerNight", "desc"],
@@ -43,8 +48,22 @@ export async function getHotels(
     params.set("pricePerNight_lte", String(filters.maxPrice));
   if (filters.rating !== undefined)
     params.set("rating_gte", String(filters.rating));
+  for (const type of filters.propertyTypes) params.append("propertyType", type);
+  if (filters.amenities.length) {
+    // json-server matches the comma-separated array. Each lookahead requires an
+    // exact token; values come exclusively from the validated closed allowlist.
+    params.set(
+      "amenities_like",
+      `^${filters.amenities.map((value) => `(?=(?:[^,]+,)*${value}(?:,|$))`).join("")}`
+    );
+  }
   return request(`/hotels?${params}`, z.array(hotelSchema), { signal });
 }
+
+// The demonstrative catalog has 60 hotels. A separate cached query keeps the
+// destination scale independent of filters, pagination and result failures.
+export const getHotelFilterOptions = async (signal?: AbortSignal) =>
+  (await request("/hotels", z.array(hotelSchema), { signal })).data;
 export const getFeaturedHotels = async (signal?: AbortSignal) =>
   (
     await request("/hotels?featured=true&_limit=4", z.array(hotelSchema), {

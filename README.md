@@ -162,7 +162,19 @@ O destino em `/hotels?destination=...` deve ser exatamente o nome retornado pela
 | `_sort` e `_order`                        | `pricePerNight` com `asc`/`desc`, ou `rating`/`reviewCount` com `desc` |
 | `_page` e `_limit`                        | Número da página e quantidade de itens                                 |
 
-Uma consulta paginada responde um **array**, com o total no cabeçalho `X-Total-Count`; não responde um objeto paginado. O cliente HTTP monta o resultado utilizado pela interface. Os operadores `_gte`, `_lte`, `_ne`, `_like` e `q` seguem o json-server 0.17. Os filtros adicionais documentados são capacidades do backend; a interface mantém somente o recorte do PRD.
+Uma consulta paginada responde um **array**, com o total no cabeçalho `X-Total-Count`; não responde um objeto paginado. O cliente HTTP monta o resultado utilizado pela interface. Os operadores `_gte`, `_lte`, `_ne`, `_like` e `q` seguem o json-server 0.17.
+
+### Filtros múltiplos na interface
+
+O catálogo combina preço, avaliação, comodidades e tipos de propriedade. Todas as comodidades marcadas são exigidas; basta corresponder a um dos tipos marcados. A aplicação converte as comodidades de uma lista validada em uma expressão de correspondência exata para `amenities_like`, exigindo todos os tokens antes da ordenação, contagem e paginação. Isso preserva o comportamento OU das consultas diretas que repetem `amenities_like`.
+
+O slider tem dois controles, ajustáveis por teclado ou arraste, sincronizados com os campos numéricos e com precisão de centavos. Sua escala considera todas as hospedagens do destino e permanece igual ao editar os demais filtros ou navegar pelas páginas. Valores digitados fora dessa escala continuam válidos e podem resultar em uma busca vazia. Campos vazios não adicionam restrições.
+
+A lista de comodidades oferece Wi-Fi, piscina, estacionamento, café da manhã, academia, spa e restaurante. Ar-condicionado passa a ser oferecido quando cadastrado em uma hospedagem; características exclusivas dos quartos não são usadas para inferir comodidades do hotel. Uma seleção válida já presente no endereço continua removível mesmo sem oferta atual.
+
+Para o catálogo demonstrativo atual de 60 hospedagens, uma consulta independente e validada de `/hotels`, com cache de cinco minutos no cliente, fornece a escala de cada destino e identifica ar-condicionado no catálogo. Se essa consulta falhar, os resultados e a entrada manual de preços continuam disponíveis. Um catálogo maior precisará fornecer esses agregados sem transferir todas as hospedagens.
+
+As alterações só chegam aos resultados depois de “Aplicar filtros”, que retorna à primeira página. Os parâmetros repetidos `amenities` e `propertyTypes` na URL da busca preservam múltiplas seleções em compartilhamento, recarregamento, histórico, paginação e retorno dos detalhes. “Limpar filtros” restaura menor preço, todas as avaliações e primeira página, preservando destino, datas e ocupação. Uma nova submissão da pesquisa principal inicia uma busca sem filtros.
 
 Relacionamentos disponíveis: `/hotels/1?_embed=rooms`, `/hotels/1?_embed=reviews` e `/rooms/1?_expand=hotel`. É possível repetir `_embed` para consultar quartos e avaliações juntos.
 
@@ -197,3 +209,5 @@ Se a porta estiver ocupada (`EADDRINUSE`), escolha outra com `--port`. Se o fron
 Consulte o [PRD](docs/prd/lumina-hotels.md) para as regras e critérios completos.
 
 A reorganização da instalação e dos arquivos está registrada no [PRD de organização da mock-api](docs/prd/feature-organizacao-mock-api.md).
+
+A ampliação do catálogo está registrada no [PRD de filtros múltiplos](docs/prd/feature-filtros-multiplos.md), que inclui os filtros de comodidades e propriedade antes excluídos do recorte inicial.

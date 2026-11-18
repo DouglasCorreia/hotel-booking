@@ -22,15 +22,19 @@ export function SearchContent() {
   const search = parseSearch(params);
   const parsedFilters = parseFilters(params);
   const filters = parsedFilters.success ? parsedFilters.data : null;
-  const { hotels, destination, isDestinationValid } = useCatalog(
+  const { hotels, destination, isDestinationValid, options } = useCatalog(
     search,
-    filters,
+    filters
   );
+  const destinationPrices =
+    options.data
+      ?.filter((hotel) => hotel.destination === search?.destination)
+      .map((hotel) => hotel.pricePerNight) ?? [];
   const pageCount = Math.max(1, Math.ceil((hotels.data?.total ?? 0) / 10));
   useEffect(() => {
     if (search && filters && hotels.isSuccess && filters.page > pageCount)
       router.replace(
-        `/search?${searchParamsFor(search, { ...filters, page: 1 })}`,
+        `/search?${searchParamsFor(search, { ...filters, page: 1 })}`
       );
   }, [search, filters, hotels.isSuccess, pageCount, router]);
   if (!search)
@@ -73,7 +77,7 @@ export function SearchContent() {
               toast.success("Link da busca copiado.");
             } catch {
               toast.error(
-                "Copie o endereço da barra do navegador para compartilhar.",
+                "Copie o endereço da barra do navegador para compartilhar."
               );
             }
           }}
@@ -88,7 +92,8 @@ export function SearchContent() {
           href={`/search?${searchParamsFor(search)}`}
           linkLabel="Remover filtros inválidos"
         >
-          Há preços, avaliação, ordenação ou página inválidos no endereço.
+          Há preços, comodidades, tipos de propriedade, avaliação, ordenação ou
+          página inválidos no endereço.
         </Feedback>
       ) : (
         <div className="catalog-layout">
@@ -96,8 +101,34 @@ export function SearchContent() {
             key={params.toString()}
             search={search}
             filters={filters}
+            options={{
+              min: destinationPrices.length
+                ? Math.min(...destinationPrices)
+                : null,
+              max: destinationPrices.length
+                ? Math.max(...destinationPrices)
+                : null,
+              hasAircon:
+                options.data?.some((hotel) =>
+                  hotel.amenities.includes("aircon")
+                ) ?? false,
+              isPending: options.isPending,
+              isError: options.isError,
+              onRetry: () => {
+                void options.refetch();
+              },
+            }}
           />
-          <div className="catalog-results" aria-live="polite">
+          <div
+            className="catalog-results"
+            aria-live="polite"
+            aria-busy={hotels.isFetching}
+          >
+            {hotels.isFetching && (
+              <p className="muted" role="status">
+                Atualizando hospedagens…
+              </p>
+            )}
             {destination.isError ? (
               <QueryError
                 error={destination.error}
