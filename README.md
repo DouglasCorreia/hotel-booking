@@ -4,7 +4,30 @@ Aplicação de busca e reserva **simulada** de hotéis, em português brasileiro
 
 Atualizado em 18 de novembro de 2026.
 
+**[Abrir a demonstração online](https://hotel-booking-sandy-one.vercel.app/)** · [Verificar a mock API](https://hotel-booking-8pbs.onrender.com/hotels)
+
 Consulte a [visão do produto](docs/project-overview.md) para conhecer a jornada de reserva e a [arquitetura](docs/architecture.md) para entender a organização do código.
+
+## Roteiro para avaliação
+
+O frontend está publicado na **Vercel** e a mock API está no **Render**. A demonstração pode ser avaliada pelo navegador. Para rodar o código ou reproduzir as verificações, consulte [Executar localmente](#executar-localmente) e [Verificações](#verificações).
+
+1. **Busca.** Digite `sao`, selecione **São Paulo, SP** nas sugestões e informe uma estadia futura de duas noites, um adulto e um quarto. Confira a paginação e combine filtros, como **Wi-Fi** e **Hotel**. Recarregue a página para verificar que os filtros aplicados continuam na URL.
+2. **Detalhes.** Abra um hotel, confira a galeria e as condições da estadia e selecione um quarto disponível. Se os filtros deixarem a busca vazia, use **Limpar filtros** para recuperar os resultados.
+3. **Checkout.** Use os dados fictícios abaixo. Na etapa **Pagamento simulado**, tente o cartão de recusa e depois o de aprovação. Na revisão, aplique `LUMINA10`, confira a composição do total, aceite os termos e confirme.
+4. **Confirmação.** Confira o número da reserva, os dados da estadia e o valor registrado. Recarregue a página da confirmação para verificar a consulta pelo identificador.
+
+| Campo                          | Dados de teste                           |
+| ------------------------------ | ---------------------------------------- |
+| Nome e e-mail                  | `Maria Silva` e `maria@example.com`      |
+| Telefone e CPF                 | `+55 (11) 99999-1234` e `529.982.247-25` |
+| Cartão para recusa             | `4000 0000 0000 0002`                    |
+| Cartão para aprovação          | `4242 4242 4242 4242`                    |
+| Validade e código de segurança | Um mês futuro no formato `MM/AA` e `123` |
+
+Para verificar o **estado vazio**, pesquise **Bonito, MS**. Em tela pequena, abra o painel lateral de filtros para testar sua navegação.
+
+**Se a primeira busca expirar**, abra [o catálogo da API](https://hotel-booking-8pbs.onrender.com/hotels) para iniciar o serviço no Render. Aguarde a resposta JSON e tente novamente na aplicação. Use somente dados fictícios. As reservas são apagadas quando a mock API reinicia.
 
 ## Executar localmente
 
@@ -79,10 +102,6 @@ O servidor é uma ferramenta de desenvolvimento executada por `scripts/mock-api.
 | `/hotel/[hotelId]`          | Detalhes e seleção de quarto           |
 | `/checkout`                 | Hóspedes, pagamento simulado e revisão |
 | `/confirmation/[bookingId]` | Consulta da confirmação                |
-
-## Experimentar a reserva
-
-Pesquise São Paulo, SP, informe datas futuras e selecione um quarto disponível. Preencha o checkout com dados fictícios. O telefone aceita DDD com ou sem `+55`. Em **Pagamento simulado**, a tela fornece cartões de teste para aprovação e recusa. Use uma validade atual ou futura e um código de três dígitos. Na revisão, aplique `LUMINA10`, aceite os termos e confirme. Recarregue a confirmação para consultar a mesma reserva.
 
 ## Verificações
 
@@ -208,7 +227,7 @@ Se a porta estiver ocupada (`EADDRINUSE`), escolha outra com `--port`. Se o fron
 - Nomes dos hóspedes e contato do titular são consultáveis na API demonstrativa por identificador, sem autenticação. Use dados fictícios. CPF e cartão são solicitados novamente ao recarregar e ficam fora da API.
 - O cupom `LUMINA10` dá 10% de desconto sobre diária × noites × quartos. A taxa de serviço de 5% e o imposto de 3% são demonstrações e incidem sobre o subtotal após o desconto.
 - Cada reserva utiliza um único tipo de quarto. Há no mínimo um adulto por quarto e todas as crianças contam na capacidade.
-- Login, comparação dedicada, reviews, mapas, favoritos, pagamento real, edição/cancelamento, histórico e deploy ficam fora do escopo.
+- Login, comparação dedicada, reviews, mapas, favoritos, pagamento real, edição/cancelamento e histórico ficam fora do escopo.
 - Virtualização e antecipação de detalhes não foram adicionadas: páginas de dez itens não justificam esse custo neste recorte.
 
 Consulte o [PRD inicial](docs/prd/lumina-hotels.md) para o escopo da primeira entrega.

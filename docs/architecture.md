@@ -8,6 +8,12 @@ O frontend usa Next.js 16.4.6 com App Router, React 19.3 e TypeScript em modo es
 
 A mock API é um processo separado do frontend. Usa json-server 0.17, iniciado por `scripts/mock-api.mjs` a partir da instalação npm da raiz. O arquivo `mock-api/db.seed.json` contém os dados iniciais versionados. A cada inicialização, o script recria o banco transitório `mock-api/db.json`.
 
+## Publicação da demonstração
+
+O [frontend na Vercel](https://hotel-booking-sandy-one.vercel.app/) usa a [mock API no Render](https://hotel-booking-8pbs.onrender.com/hotels). Na Vercel, `NEXT_PUBLIC_API_URL` é uma variável de configuração do ambiente **Production** com o endereço HTTPS base do Render. O Next.js incorpora o valor durante o build. Mudanças na URL exigem um novo deploy do frontend.
+
+O Render executa a API como um Web Service Node a partir da raiz do repositório. O build usa `npm ci --include=dev` porque `json-server` está em `devDependencies`. O comando `npm run api -- --host 0.0.0.0` inicia o servidor na porta fornecida pelo Render.
+
 ## Organização do código
 
 | Diretório                | Responsabilidade                                                                                     |
