@@ -1,6 +1,10 @@
 # Lumina Hotels
 
-Aplicação de busca e reserva **simulada** de hotéis, em português brasileiro. Inclui o frontend e a mock-api fornecida, sem depender de arquivos em Downloads.
+Aplicação de busca e reserva **simulada** de hotéis, em português brasileiro. O repositório inclui o frontend e a mock API fornecida.
+
+Atualizado em 18 de novembro de 2026.
+
+Consulte a [visão do produto](docs/project-overview.md) para conhecer a jornada de reserva e a [arquitetura](docs/architecture.md) para entender a organização do código.
 
 ## Executar localmente
 
@@ -34,7 +38,7 @@ Abra [Lumina Hotels](http://localhost:3000). O endereço do backend é configura
 
 - Busca com autocomplete, debounce, cancelamento de consultas obsoletas e operação por teclado.
 - Validação de calendário, estadias de uma a trinta noites e ocupação.
-- Busca compartilhável pela URL, dez hotéis por página, filtros de diária/avaliação e ordenação.
+- Busca compartilhável pela URL, dez hotéis por página, ordenação e filtros combinados de diária, avaliação, comodidades e tipo de propriedade.
 - Detalhes, galeria ampliada, comodidades, políticas e seleção de um tipo de quarto.
 - Validação de estoque e capacidade incluindo crianças, com um adulto por quarto.
 - Checkout em três etapas com dados por hóspede, CPF do titular, pagamento simulado e rascunho na mesma aba.
@@ -62,11 +66,7 @@ tests/               Regras, contratos HTTP, checkout e testes de navegador
 docs/prd/            PRD funcional aprovado
 ```
 
-As rotas mantêm suas entradas no servidor. Consultas e interações utilizam componentes cliente. A estrutura estática é prerenderizada e as rotas com identificadores usam Suspense. Hotel e quarto são revalidados em paralelo no checkout. A URL é a fonte da busca e TanStack Query controla dados remotos. Zustand guarda em `sessionStorage` a seleção e o rascunho com nomes, contato, cupom e progresso. CPF e cartão ficam apenas em memória.
-
-O cliente HTTP valida respostas com Zod, aplica timeout de 12 segundos e distingue ausência, falha de serviço e resultado incerto. Consultas podem ter duas novas tentativas; mutações nunca são repetidas automaticamente. O bloqueio síncrono do checkout evita dois envios antes de React atualizar o botão.
-
-A aplicação usa os endpoints existentes para salvar os hóspedes, o contato do titular, a composição do preço e o registro de aceite. Os contratos utilizados pela aplicação são definidos com Zod e os tipos são derivados dos schemas.
+Os [detalhes de renderização, estado e contratos](docs/architecture.md) descrevem como as rotas, o checkout e a mock API se conectam.
 
 O servidor é uma ferramenta de desenvolvimento executada por `scripts/mock-api.mjs`. Sua dependência `json-server` 0.17 está nas dependências de desenvolvimento do manifesto principal e no lockfile da raiz. A instalação completa na raiz atende tanto o frontend quanto a API; não existe instalação separada do backend.
 
@@ -76,9 +76,13 @@ O servidor é uma ferramenta de desenvolvimento executada por `scripts/mock-api.
 | --------------------------- | -------------------------------------- |
 | `/`                         | Pesquisa e hotéis em destaque          |
 | `/search`                   | Catálogo com contexto na URL           |
-| `/hotel/[hotelId]`          | Detalhes e seleção                     |
+| `/hotel/[hotelId]`          | Detalhes e seleção de quarto           |
 | `/checkout`                 | Hóspedes, pagamento simulado e revisão |
 | `/confirmation/[bookingId]` | Consulta da confirmação                |
+
+## Experimentar a reserva
+
+Pesquise São Paulo, SP, informe datas futuras e selecione um quarto disponível. Preencha o checkout com dados fictícios. O telefone aceita DDD com ou sem `+55`. Em **Pagamento simulado**, a tela fornece cartões de teste para aprovação e recusa. Use uma validade atual ou futura e um código de três dígitos. Na revisão, aplique `LUMINA10`, aceite os termos e confirme. Recarregue a confirmação para consultar a mesma reserva.
 
 ## Verificações
 
@@ -197,7 +201,7 @@ Se a porta estiver ocupada (`EADDRINUSE`), escolha outra com `--port`. Se o fron
 
 ## Limitações e decisões
 
-- **Não é uma plataforma de reservas reais.** Não há pagamento, contato com hotel, e-mail, autenticação ou garantia de disponibilidade.
+- A plataforma simula a reserva e o pagamento. O fluxo não realiza cobrança, contato com o hotel ou envio de e-mail.
 - Estoque é estático, independe das datas e não diminui ao reservar. O frontend valida o que a API informa, sem prometer atomicidade ou segurança de produção.
 - Reservas são apagadas a cada reinício da API; `db.json` é transitório e ignorado pelo Git. Os dados iniciais estão em `db.seed.json`.
 - Não há idempotência no servidor. Se uma criação perder a resposta, a interface avisa que uma nova tentativa pode duplicar a reserva.
@@ -207,7 +211,7 @@ Se a porta estiver ocupada (`EADDRINUSE`), escolha outra com `--port`. Se o fron
 - Login, comparação dedicada, reviews, mapas, favoritos, pagamento real, edição/cancelamento, histórico e deploy ficam fora do escopo.
 - Virtualização e antecipação de detalhes não foram adicionadas: páginas de dez itens não justificam esse custo neste recorte.
 
-Consulte o [PRD](docs/prd/lumina-hotels.md) para as regras e critérios completos.
+Consulte o [PRD inicial](docs/prd/lumina-hotels.md) para o escopo da primeira entrega.
 
 A reorganização da instalação e dos arquivos está registrada no [PRD de organização da mock-api](docs/prd/feature-organizacao-mock-api.md).
 
