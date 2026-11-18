@@ -1,10 +1,28 @@
+import type { Metadata } from "next";
 import { Suspense } from "react";
 import { HotelContent } from "./_components/content";
 import { LoadingCards } from "@/components/feedback";
-export const metadata = { title: "Conheça sua próxima estadia" };
+import { getHotel } from "@/features/hotels/api";
+
 type HotelPageProps = {
   params: Promise<{ hotelId: string }>;
 };
+
+export async function generateMetadata({
+  params,
+}: HotelPageProps): Promise<Metadata> {
+  const { hotelId } = await params;
+  const id = /^\d+$/.test(hotelId) ? Number(hotelId) : NaN;
+  const fallback = { title: "Conheça sua próxima estadia" };
+  if (!Number.isSafeInteger(id)) return fallback;
+
+  try {
+    const hotel = await getHotel(id);
+    return { title: { absolute: `${hotel.name} | lumina hotels` } };
+  } catch {
+    return fallback;
+  }
+}
 
 async function HotelDetails({ params }: HotelPageProps) {
   const { hotelId } = await params;

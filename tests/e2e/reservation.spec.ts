@@ -236,4 +236,5 @@ test("autocomplete funciona por teclado e falha simulada permite recuperação",
   await expect(
     page.getByRole("heading", { name: "Hotel Copacabana Palace" })
   ).toBeVisible();
+  await expect(page).toHaveTitle("Hotel Copacabana Palace | lumina hotels");
 });
