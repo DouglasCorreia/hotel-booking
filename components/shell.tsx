@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { ArrowUpRight, Globe2, Sparkles } from "lucide-react";
+import { HeaderLinks } from "./header-links";
+import { MobileMenu } from "./mobile-menu";
 
 export function Brand() {
   return (
@@ -18,18 +20,19 @@ export function Brand() {
 }
 export function Header() {
   return (
-    <header className="bg-white border-b border-b-border">
-      <div className="container w-[min(1280px,_calc(100%_-_80px))] mx-auto max-[1200.01px]:w-[calc(100%_-_56px)] max-[760.01px]:w-[calc(100%_-_36px)] max-[360.01px]:w-[calc(100%_-_28px)] min-h-22 flex items-center gap-15 [&_nav]:flex [&_nav]:gap-8 [&_nav]:items-center [&_nav]:text-[12px] [&_nav]:font-[550] [&_nav_a]:flex [&_nav_a]:gap-1.5 [&_nav_a]:items-center [&_nav_a:hover]:text-primary max-[760.01px]:min-h-[75px] max-[760.01px]:gap-5 max-[760.01px]:[&_nav]:ml-auto max-[760.01px]:[&_nav]:text-[10px] max-[360.01px]:[&_nav]:text-[9px]">
+    <header className="relative bg-white border-b border-b-border">
+      <div className="container w-[min(1280px,_calc(100%_-_80px))] mx-auto max-[1200.01px]:w-[calc(100%_-_56px)] max-[760.01px]:w-[calc(100%_-_36px)] max-[360.01px]:w-[calc(100%_-_28px)] min-h-22 flex items-center gap-15 max-[760.01px]:min-h-[75px] max-[760.01px]:gap-5">
         <Brand />
-        <nav aria-label="Navegação principal">
-          <Link href="/#buscar">Encontrar uma estadia</Link>
-          <Link href="/#inspiracao" className="max-[760.01px]:hidden!">
-            Inspire-se <ArrowUpRight size={14} aria-hidden="true" />
-          </Link>
+        <nav
+          aria-label="Navegação principal"
+          className="flex items-center gap-8 text-[12px] font-[550] max-[760.01px]:hidden"
+        >
+          <HeaderLinks className="flex items-center gap-1.5 hover:text-primary" />
         </nav>
         <span className="ml-auto flex gap-2.5 items-center text-[11px] text-muted-foreground whitespace-nowrap [&_>_span]:text-[#b5becc] max-[760.01px]:hidden!">
           <Globe2 size={15} aria-hidden="true" /> PT-BR <span>·</span> BRL
         </span>
+        <MobileMenu />
       </div>
     </header>
   );

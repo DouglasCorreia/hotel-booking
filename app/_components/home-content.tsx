@@ -57,10 +57,7 @@ export function HomeContent() {
           </span>
         </Link>
       </section>
-      <section
-        className="container w-[min(1280px,_calc(100%_-_80px))] mx-auto max-[1200.01px]:w-[calc(100%_-_56px)] max-[760.01px]:w-[calc(100%_-_36px)] max-[360.01px]:w-[calc(100%_-_28px)] py-17.5 max-[760.01px]:py-[45px]"
-        id="inspiracao"
-      >
+      <section className="container w-[min(1280px,_calc(100%_-_80px))] mx-auto max-[1200.01px]:w-[calc(100%_-_56px)] max-[760.01px]:w-[calc(100%_-_36px)] max-[360.01px]:w-[calc(100%_-_28px)] py-17.5 max-[760.01px]:py-[45px]">
         <div className="flex justify-between gap-6 items-end mb-7 [&_h2]:mb-0 [&_p]:mb-0 [&_.eyebrow]:mb-[9px] [&_>_span]:text-[12px] [&_>_span]:pb-[5px] max-[760.01px]:flex-col max-[760.01px]:items-start max-[760.01px]:gap-3 max-[760.01px]:mb-5.5 max-[760.01px]:[&_h2]:text-[25px] max-[760.01px]:[&_>_span]:text-[10px]">
           <div>
             <p className="eyebrow text-primary text-[11px] font-[650] tracking-[0.1em] uppercase mb-3">

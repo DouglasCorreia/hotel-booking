@@ -82,7 +82,6 @@ export function SearchForm({
   }
   return (
     <form
-      id="buscar"
       className={
         compact
           ? "relative bg-white p-5.5 border border-border rounded-[12px] shadow-[0_8px_30px_#18376307] z-[5] [&_[data-slot=field]]:gap-[7px] [&_[data-slot=field]]:min-w-0 [&_label]:text-[10px] [&_label]:text-[#485670] [&_label]:font-semibold [&_label]:gap-1.5 [&_label_svg]:text-primary [&_input]:w-full [&_input]:h-[43px] [&_input]:bg-secondary [&_input]:border [&_input]:border-transparent [&_input]:shadow-none [&_input]:text-[12px] [&_input]:font-[550] [&_input]:px-[11px] [&_input:focus]:border-primary [&_input[type=date]]:px-[9px] max-[760.01px]:p-[17px] max-[760.01px]:rounded-[9px] compact"

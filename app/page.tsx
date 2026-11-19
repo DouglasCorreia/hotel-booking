@@ -27,7 +27,10 @@ export default function Home() {
           Boas histórias.
         </span>
       </section>
-      <div className="container w-[min(1280px,_calc(100%_-_80px))] mx-auto max-[1200.01px]:w-[calc(100%_-_56px)] max-[760.01px]:w-[calc(100%_-_36px)] max-[360.01px]:w-[calc(100%_-_28px)] home-search">
+      <div
+        id="buscar"
+        className="container w-[min(1280px,_calc(100%_-_80px))] mx-auto max-[1200.01px]:w-[calc(100%_-_56px)] max-[760.01px]:w-[calc(100%_-_36px)] max-[360.01px]:w-[calc(100%_-_28px)] home-search"
+      >
         <Suspense>
           <SearchForm />
         </Suspense>
@@ -36,7 +39,9 @@ export default function Home() {
           sem cobrança.
         </p>
       </div>
-      <HomeContent />
+      <div id="inspiracao">
+        <HomeContent />
+      </div>
     </>
   );
 }
