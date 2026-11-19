@@ -21,6 +21,7 @@ import { searchParamsFor } from "@/features/search/model";
 import { useCheckout } from "@/features/booking/use-checkout";
 import { useBookingStore } from "@/features/booking/store";
 import { animateEntrance } from "@/lib/animate-entrance";
+import { useOnline } from "@/lib/use-online";
 import {
   approvedCard,
   declinedCard,
@@ -101,6 +102,7 @@ function CheckoutWizard({
   const [couponEntry, setCouponEntry] = useState("");
   const [couponError, setCouponError] = useState("");
   const [termsAccepted, setTermsAccepted] = useState(false);
+  const isOnline = useOnline();
   const heading = useRef<HTMLHeadingElement>(null);
   const stageForm = useRef<HTMLFormElement>(null);
   const previousStep = useRef(step);
@@ -428,6 +430,7 @@ function CheckoutWizard({
                   type="submit"
                   disabled={
                     pending ||
+                    !isOnline ||
                     !termsAccepted ||
                     !!checkout.problem ||
                     checkout.priceChanged

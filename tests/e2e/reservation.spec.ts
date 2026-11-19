@@ -146,6 +146,15 @@ async function runReservation(page: Page, reducedMotion: boolean) {
       bookingPayload = request.postData();
     }
   });
+  await page.context().setOffline(true);
+  await expect(confirm).toBeDisabled();
+  await expect(
+    page.getByRole("status").filter({ hasText: "Você está sem conexão" })
+  ).toBeVisible();
+  await page.context().setOffline(false);
+  await expect(confirm).toBeEnabled();
+  expect(creations).toBe(0);
+
   await page.route(/\/rooms\/\d+$/, async (route) => {
     const response = await route.fetch();
     const room = await response.json();

@@ -49,11 +49,17 @@ As props de componentes complexos têm JSDoc junto à declaração TypeScript. O
 
 ## Contrato de reserva
 
-O checkout consulta hotel e quarto em paralelo e revalida diária, estoque e capacidade antes de executar `POST /bookings`. Um bloqueio síncrono evita envios simultâneos. Em falhas nas quais a criação pode ter ocorrido, a interface informa que reenviar pode gerar duplicidade.
+O checkout consulta hotel e quarto em paralelo e revalida diária, estoque e capacidade antes de executar `POST /bookings`. Um bloqueio síncrono evita envios simultâneos. Perder a conexão durante a revalidação interrompe a tentativa. A confirmação exige um novo envio explícito após reconectar. Em falhas nas quais a criação pode ter ocorrido, a interface informa que reenviar pode gerar duplicidade.
 
 O corpo da reserva contém o contato do titular, o resumo do hotel e do quarto (`snapshot`) e, nas reservas novas, os nomes dos acompanhantes, a composição do preço e o registro de aceite versionado (`checkout`). CPF e dados do cartão ficam fora da requisição. A confirmação usa `GET /bookings/:id` e aceita reservas antigas sem o bloco `checkout`.
 
 A mock API aceita a criação sem validar o contrato e permite consultar reservas sem autenticação. A disponibilidade não depende das datas e o estoque não diminui ao criar uma reserva.
+
+## PWA e conexão
+
+O App Router publica o manifesto em `/manifest.webmanifest`. No build de produção, o navegador registra `/sw.js` em contexto seguro. O service worker salva somente `/offline.html` no Cache Storage e serve a tela se falhar uma navegação GET da mesma origem. Os dados do catálogo e da reserva são consultados pela rede.
+
+Ao atualizar a tela offline, incremente a versão do cache em `public/sw.js`. A nova versão do worker assume o controle após fechar as janelas que usam a versão anterior e remove os caches offline obsoletos da Lumina.
 
 ## Verificação
 

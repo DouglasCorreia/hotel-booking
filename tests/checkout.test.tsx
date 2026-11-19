@@ -49,7 +49,7 @@ function setup() {
   const wrapper = ({ children }: { children: React.ReactNode }) => (
     <QueryClientProvider client={client}>{children}</QueryClientProvider>
   );
-  return renderHook(() => useCheckout(), { wrapper });
+  return { ...renderHook(() => useCheckout(), { wrapper }), client };
 }
 beforeEach(() => {
   vi.clearAllMocks();
@@ -72,6 +72,8 @@ beforeEach(() => {
 });
 afterEach(() => {
   cleanup();
+  vi.restoreAllMocks();
+  window.dispatchEvent(new Event("online"));
   sessionStorage.clear();
 });
 
@@ -117,6 +119,37 @@ describe("checkout revalida a seleção antes da criação", () => {
     expect(createBooking).not.toHaveBeenCalled();
     expect(result.current.issue?.message).toContain("quartos suficientes");
   });
+  it("mantém a diária revalidada quando uma consulta anterior termina depois", async () => {
+    const { result, client } = setup();
+    await waitFor(() => expect(result.current.query.isSuccess).toBe(true));
+    let finishEarlierQuery!: (value: typeof room) => void;
+    vi.mocked(getRoom).mockReturnValueOnce(
+      new Promise((resolve) => {
+        finishEarlierQuery = resolve;
+      })
+    );
+    let earlierQuery!: Promise<unknown>;
+    act(() => {
+      earlierQuery = result.current.query.refetch();
+    });
+    await waitFor(() => expect(getRoom).toHaveBeenCalledTimes(2));
+
+    const updatedRoom = { ...room, pricePerNight: room.pricePerNight + 100 };
+    vi.mocked(getRoom).mockResolvedValueOnce(updatedRoom);
+    await act(async () => {
+      await result.current.submit(submission);
+    });
+    expect(createBooking).not.toHaveBeenCalled();
+    expect(result.current.issue?.message).toContain("O preço mudou.");
+
+    await act(async () => {
+      finishEarlierQuery(room);
+      await earlierQuery;
+    });
+    expect(client.getQueryData(["checkout", hotel.id, room.id])).toMatchObject({
+      room: updatedRoom,
+    });
+  });
   it("bloqueia duas submissões no mesmo instante", async () => {
     const { result } = setup();
     await waitFor(() => expect(result.current.query.isSuccess).toBe(true));
@@ -138,25 +171,93 @@ describe("checkout revalida a seleção antes da criação", () => {
     expect(result.current.issue?.message).toContain("termos");
   });
 
-  it("preserva o rascunho quando a criação falha e limpa após sucesso", async () => {
+  it("exige uma nova confirmação quando a tentativa começou offline", async () => {
+    const { result } = setup();
+    await waitFor(() => expect(result.current.query.isSuccess).toBe(true));
+    const online = vi.spyOn(navigator, "onLine", "get").mockReturnValue(false);
+    let attempt!: Promise<void>;
+    act(() => {
+      window.dispatchEvent(new Event("offline"));
+      attempt = result.current.submit(submission);
+    });
+    await act(async () => {
+      online.mockReturnValue(true);
+      window.dispatchEvent(new Event("online"));
+      await attempt;
+    });
+    expect(createBooking).not.toHaveBeenCalled();
+    expect(result.current.issue?.message).toContain("conexão");
+
+    await act(async () => {
+      await result.current.submit(submission);
+    });
+    expect(createBooking).toHaveBeenCalledTimes(1);
+  });
+
+  it("interrompe a confirmação se a conexão cair durante a revalidação", async () => {
+    const { result } = setup();
+    await waitFor(() => expect(result.current.query.isSuccess).toBe(true));
+    let finishRevalidation!: (value: typeof room) => void;
+    vi.mocked(getRoom).mockReturnValueOnce(
+      new Promise((resolve) => {
+        finishRevalidation = resolve;
+      })
+    );
+    let attempt!: Promise<void>;
+    act(() => {
+      attempt = result.current.submit(submission);
+    });
+    await waitFor(() => expect(getRoom).toHaveBeenCalledTimes(2));
+
+    const online = vi.spyOn(navigator, "onLine", "get").mockReturnValue(false);
+    act(() => {
+      window.dispatchEvent(new Event("offline"));
+    });
+    await act(async () => {
+      online.mockReturnValue(true);
+      window.dispatchEvent(new Event("online"));
+      finishRevalidation(room);
+      await attempt;
+    });
+    expect(createBooking).not.toHaveBeenCalled();
+    expect(result.current.issue?.message).toContain("conexão");
+  });
+
+  it("preserva o rascunho e exige nova ação quando a conexão cai após o envio", async () => {
     useBookingStore.getState().saveDraft({ ...submission, step: "review" });
-    vi.mocked(createBooking).mockRejectedValueOnce(
-      new ApiError("Falha simulada", 0, true)
+    let failSend!: (error: ApiError) => void;
+    vi.mocked(createBooking).mockReturnValueOnce(
+      new Promise((_, reject) => {
+        failSend = reject;
+      })
     );
     const { result } = setup();
     await waitFor(() => expect(result.current.query.isSuccess).toBe(true));
+    let attempt!: Promise<void>;
+    act(() => {
+      attempt = result.current.submit(submission);
+    });
+    await waitFor(() => expect(createBooking).toHaveBeenCalledTimes(1));
+    const online = vi.spyOn(navigator, "onLine", "get").mockReturnValue(false);
     await act(async () => {
-      await result.current.submit(submission);
+      window.dispatchEvent(new Event("offline"));
+      failSend(new ApiError("Falha simulada", 0, true));
+      await attempt;
     });
     expect(result.current.issue).toEqual({
       message: "Falha simulada",
       uncertain: true,
     });
-    expect(createBooking).toHaveBeenCalledTimes(1);
     expect(useBookingStore.getState().draft?.guest).toEqual(guest);
+    await act(async () => {
+      online.mockReturnValue(true);
+      window.dispatchEvent(new Event("online"));
+    });
+    expect(createBooking).toHaveBeenCalledTimes(1);
     await act(async () => {
       await result.current.submit(submission);
     });
+    expect(createBooking).toHaveBeenCalledTimes(2);
     expect(useBookingStore.getState().draft).toBeNull();
     const persisted = sessionStorage.getItem("lumina-selection-v1") ?? "";
     expect(persisted).not.toContain(guest.email);

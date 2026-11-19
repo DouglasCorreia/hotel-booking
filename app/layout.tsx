@@ -1,6 +1,7 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { Providers } from "@/components/providers";
+import { PwaStatus } from "@/components/pwa-status";
 import { Header, Footer } from "@/components/shell";
 
 export const metadata: Metadata = {
@@ -10,6 +11,10 @@ export const metadata: Metadata = {
   },
   description:
     "Explore destinos do Brasil, compare hotéis e experimente uma jornada simples de reserva. Projeto demonstrativo, sem cobrança.",
+};
+
+export const viewport: Viewport = {
+  themeColor: "#0051d5",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
@@ -24,6 +29,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             Pular para o conteúdo
           </a>
           <Header />
+          <PwaStatus />
           <main id="conteudo">{children}</main>
           <Footer />
         </Providers>

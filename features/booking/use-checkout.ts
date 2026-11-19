@@ -18,6 +18,14 @@ import {
   type CheckoutSubmission,
 } from "./checkout-model";
 
+function requireConnection(signal?: AbortSignal) {
+  if (signal?.aborted || !navigator.onLine) {
+    throw new ApiError(
+      "A confirmação exige conexão. Reconecte-se e tente novamente."
+    );
+  }
+}
+
 export function useCheckout() {
   const router = useRouter();
   const client = useQueryClient();
@@ -29,16 +37,16 @@ export function useCheckout() {
   } | null>(null);
   const lock = useRef(false);
   const queryKey = ["checkout", selection?.hotelId, selection?.roomId];
-  const queryFn = async () => {
+  const loadDetails = async (signal?: AbortSignal) => {
     const [hotel, room] = await Promise.all([
-      getHotel(selection!.hotelId),
-      getRoom(selection!.roomId),
+      getHotel(selection!.hotelId, signal),
+      getRoom(selection!.roomId, signal),
     ]);
     return { hotel, room };
   };
   const query = useQuery({
     queryKey,
-    queryFn,
+    queryFn: ({ signal }) => loadDetails(signal),
     enabled: isReady && !!selection,
     staleTime: 0,
     refetchOnMount: "always",
@@ -47,7 +55,10 @@ export function useCheckout() {
     if (isReady && !selection && !lock.current) router.replace("/#buscar");
   }, [isReady, selection, router]);
   const mutation = useMutation({
+    networkMode: "always",
+    retry: false,
     mutationFn: async (input: CheckoutSubmission) => {
+      requireConnection();
       if (!selection)
         throw new ApiError("Selecione uma acomodação antes de continuar.");
       if (!input.termsAccepted)
@@ -59,11 +70,24 @@ export function useCheckout() {
         selection.search.adults + selection.search.children - 1
       )
         throw new ApiError("Informe o nome de todos os hóspedes da reserva.");
-      const { hotel, room } = await client.fetchQuery({
-        queryKey,
-        queryFn,
-        staleTime: 0,
-      });
+      const revalidation = new AbortController();
+      const cancelRevalidation = () => revalidation.abort();
+      window.addEventListener("offline", cancelRevalidation, { once: true });
+      let details: Awaited<ReturnType<typeof loadDetails>>;
+      try {
+        details = await loadDetails(revalidation.signal);
+        // An earlier background request must not replace the revalidated price.
+        await client.cancelQueries({ queryKey, exact: true });
+      } catch (error) {
+        requireConnection(revalidation.signal);
+        throw error;
+      } finally {
+        window.removeEventListener("offline", cancelRevalidation);
+      }
+      requireConnection(revalidation.signal);
+      client.setQueryData(queryKey, details);
+
+      const { hotel, room } = details;
       const problem = selectionProblem(room, hotel.id, selection.search);
       if (problem) throw new ApiError(problem);
       if (hotel.destination !== selection.search.destination)
@@ -109,6 +133,7 @@ export function useCheckout() {
     lock.current = true;
     setIssue(null);
     try {
+      requireConnection();
       const booking = await mutation.mutateAsync(input);
       useBookingStore.getState().complete(selection);
       router.replace(`/confirmation/${encodeURIComponent(booking.id)}`);

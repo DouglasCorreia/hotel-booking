@@ -11,6 +11,7 @@
     "typecheck": "next typegen && tsc --noEmit",
     "test": "vitest run",
     "test:e2e": "playwright test",
+    "test:e2e:pwa": "playwright test --config playwright.pwa.config.ts",
     "format:check": "prettier --check app components features lib scripts tests *.ts *.mts *.json *.mjs README.md docs/prd/*.md",
     "prepare": "husky"
   },

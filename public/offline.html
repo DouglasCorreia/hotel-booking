@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#0051d5" />
+    <title>Sem conexão | Lumina Hotels</title>
+    <style>
+      :root {
+        color-scheme: light;
+        background: #f8f9ff;
+        color: #131b2e;
+        font-family: system-ui, sans-serif;
+      }
+
+      body {
+        display: grid;
+        min-height: 100vh;
+        min-height: 100dvh;
+        margin: 0;
+        place-items: center;
+      }
+
+      main {
+        box-sizing: border-box;
+        width: min(100% - 2.5rem, 34rem);
+        padding: clamp(1.5rem, 6vw, 3.5rem);
+        border: 1px solid #dde3ef;
+        border-radius: 0.875rem;
+        background: #fff;
+      }
+
+      .brand {
+        color: #0051d5;
+        font-size: 1rem;
+        font-weight: 700;
+      }
+
+      h1 {
+        margin: 0.625rem 0 0.875rem;
+        font-size: clamp(1.75rem, 6vw, 2.625rem);
+        letter-spacing: -0.035em;
+        line-height: 1.12;
+      }
+
+      p {
+        margin: 0;
+        color: #5a6579;
+        line-height: 1.55;
+      }
+
+      button {
+        min-height: 2.75rem;
+        margin-top: 1.5rem;
+        padding: 0.625rem 1.125rem;
+        border: 0;
+        border-radius: 0.6rem;
+        background: #0051d5;
+        color: #fff;
+        font: inherit;
+        font-weight: 650;
+        cursor: pointer;
+      }
+
+      button:hover {
+        background: #0043b2;
+      }
+
+      button:focus-visible {
+        outline: 2px solid #0051d5;
+        outline-offset: 4px;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <p class="brand">Lumina Hotels</p>
+      <h1>Você está sem conexão</h1>
+      <p>Reconecte-se à internet para continuar de onde parou.</p>
+      <button type="button" id="retry">Tentar novamente</button>
+    </main>
+    <script>
+      document.getElementById("retry").addEventListener("click", () => {
+        window.location.reload();
+      });
+    </script>
+  </body>
+</html>

@@ -126,6 +126,18 @@ Playwright inicia frontend e API automaticamente quando estão desligados. Local
 
 Os testes cobrem regras de busca e filtros, validação de CPF e cartão, cálculo em centavos, falhas de criação, mudança de preço e estoque, duplo envio, restauração do rascunho e consulta da confirmação após recarregar. CPF e cartão são verificados como ausentes do armazenamento e da requisição de criação.
 
+## Instalação como app
+
+No Chrome desktop ou Android, use a opção de instalação no menu do navegador. No Safari do iPhone, abra **Compartilhar** e escolha **Adicionar à Tela de Início**. Abra o app conectado uma vez para preparar a tela offline. A busca e a confirmação da reserva precisam de internet.
+
+```bash
+npm run test:e2e:pwa
+```
+
+O teste gera o build de produção, sobe a aplicação em `http://localhost:3100` e usa a API simulada da porta 3333. O service worker é registrado no build de produção quando servido em HTTPS ou em localhost.
+
+Para validar um preview da Vercel, configure `NEXT_PUBLIC_API_URL` também no ambiente **Preview**. Instale pelo Chrome desktop e Android e pelo Safari no iPhone. Abra pelo ícone, desative a rede, abra o app novamente e confirme que **Tentar novamente** recupera a página quando a conexão volta. Repita a abertura instalada no domínio de produção após publicar.
+
 ## Simular lentidão e erros
 
 ```bash
