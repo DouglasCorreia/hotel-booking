@@ -30,6 +30,11 @@
         background: #fff;
       }
 
+      html[lang="pt-BR"] main[lang="en-US"],
+      html[lang="en-US"] main[lang="pt-BR"] {
+        display: none;
+      }
+
       .brand {
         color: #0051d5;
         font-size: 1rem;
@@ -73,16 +78,25 @@
     </style>
   </head>
   <body>
-    <main>
+    <main lang="pt-BR">
       <p class="brand">Lumina Hotels</p>
       <h1>Você está sem conexão</h1>
       <p>Reconecte-se à internet para continuar de onde parou.</p>
-      <button type="button" id="retry">Tentar novamente</button>
+      <button type="button">Tentar novamente</button>
+    </main>
+    <main lang="en-US">
+      <p class="brand">Lumina Hotels</p>
+      <h1>You're offline</h1>
+      <p>Reconnect to the internet to pick up where you left off.</p>
+      <button type="button">Try again</button>
     </main>
     <script>
-      document.getElementById("retry").addEventListener("click", () => {
-        window.location.reload();
-      });
+      if (document.documentElement.lang === "en-US") {
+        document.title = "Offline | Lumina Hotels";
+      }
+      for (const button of document.querySelectorAll("main button")) {
+        button.addEventListener("click", () => window.location.reload());
+      }
     </script>
   </body>
 </html>

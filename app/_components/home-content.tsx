@@ -1,12 +1,13 @@
 "use client";
+import { useLocale } from "@/lib/i18n/client";
 import Link from "next/link";
 import { ArrowRight, MapPin, MoveUpRight } from "lucide-react";
 import { Photo } from "@/components/photo";
 import { LoadingCards, QueryError } from "@/components/feedback";
 import { useFeaturedHotels } from "@/features/hotels/hooks";
-import { money } from "@/lib/format";
 
 export function HomeContent() {
+  const { t, href, money } = useLocale();
   const hotels = useFeaturedHotels();
   if (hotels.isPending)
     return (
@@ -26,9 +27,9 @@ export function HomeContent() {
     <>
       <section className="container w-[min(1280px,_calc(100%_-_80px))] mx-auto max-[1200.01px]:w-[calc(100%_-_56px)] max-[760.01px]:w-[calc(100%_-_36px)] max-[360.01px]:w-[calc(100%_-_28px)] home-feature">
         <Link
-          href={`/hotel/${first.id}`}
+          href={href(`/hotel/${first.id}`)}
           className="block relative h-105 overflow-hidden rounded-[12px] text-white [&_>_.photo]:absolute [&_>_.photo]:inset-0 max-[760.01px]:h-85 max-[760.01px]:rounded-[9px]"
-          aria-label={`Conhecer ${first.name}`}
+          aria-label={t("Conhecer {name}", { name: first.name })}
         >
           <Photo
             src={first.images[0]}
@@ -43,17 +44,21 @@ export function HomeContent() {
               {first.destination}
             </span>
             <h2>
-              Um lugar para sair
+              {t("Um lugar para sair")}
               <br />
-              da rotina.
+              {t("da rotina.")}
             </h2>
-            <p>Conheça {first.name}.</p>
+            <p>
+              {t("Conheça") + " "}
+              {first.name}.
+            </p>
             <span className="inline-flex items-center gap-7 bg-white text-foreground font-semibold text-[11px] [padding:13px_20px] rounded-[5px]">
-              Explore esta estadia <ArrowRight size={17} aria-hidden="true" />
+              {t("Explore esta estadia") + " "}
+              <ArrowRight size={17} aria-hidden="true" />
             </span>
           </div>
           <span className="absolute right-[35px] bottom-[30px] [writing-mode:vertical-rl] text-[10px] tracking-[0.12em] max-[760.01px]:right-[18px] max-[760.01px]:bottom-[25px] max-[760.01px]:text-[8px]">
-            Uma nova perspectiva
+            {t("Uma nova perspectiva")}
           </span>
         </Link>
       </section>
@@ -61,19 +66,19 @@ export function HomeContent() {
         <div className="flex justify-between gap-6 items-end mb-7 [&_h2]:mb-0 [&_p]:mb-0 [&_.eyebrow]:mb-[9px] [&_>_span]:text-[12px] [&_>_span]:pb-[5px] max-[760.01px]:flex-col max-[760.01px]:items-start max-[760.01px]:gap-3 max-[760.01px]:mb-5.5 max-[760.01px]:[&_h2]:text-[25px] max-[760.01px]:[&_>_span]:text-[10px]">
           <div>
             <p className="eyebrow text-primary text-[11px] font-[650] tracking-[0.1em] uppercase mb-3">
-              O próximo destino pode estar aqui
+              {t("O próximo destino pode estar aqui")}
             </p>
-            <h2>Estadias que inspiram.</h2>
+            <h2>{t("Estadias que inspiram.")}</h2>
           </div>
           <span className="muted text-muted-foreground">
-            Hotéis em destaque no nosso catálogo
+            {t("Hotéis em destaque no nosso catálogo")}
           </span>
         </div>
         <div className="grid grid-cols-[repeat(4,_minmax(0,_1fr))] gap-5.5 max-[1000.01px]:grid-cols-[repeat(2,_minmax(0,_1fr))] max-[760.01px]:gap-3.5 max-[360.01px]:grid-cols-[1fr]">
           {hotels.data.map((hotel) => (
             <Link
               className="bg-white border border-border rounded-[9px] overflow-hidden [&:hover_img]:[transform:scale(1.04)] [&_>_.photo]:aspect-[1.3] max-[1000.01px]:[&_>_.photo]:aspect-[1.65] max-[760.01px]:[&_>_.photo]:aspect-[1.15] max-[360.01px]:[&_>_.photo]:aspect-[1.7]"
-              href={`/hotel/${hotel.id}`}
+              href={href(`/hotel/${hotel.id}`)}
               key={hotel.id}
             >
               <Photo
@@ -86,8 +91,9 @@ export function HomeContent() {
                 <h3>{hotel.name}</h3>
                 <div>
                   <p>
-                    A partir de <strong>{money(hotel.pricePerNight)}</strong>
-                    <small> / noite</small>
+                    {t("A partir de") + " "}
+                    <strong>{money(hotel.pricePerNight)}</strong>
+                    <small>{" " + t("/ noite")}</small>
                   </p>
                   <MoveUpRight size={18} aria-hidden="true" />
                 </div>
@@ -99,18 +105,20 @@ export function HomeContent() {
       <section className="bg-[#eaf0ff] py-15 max-[760.01px]:py-10">
         <div className="container w-[min(1280px,_calc(100%_-_80px))] mx-auto max-[1200.01px]:w-[calc(100%_-_56px)] max-[760.01px]:w-[calc(100%_-_36px)] max-[360.01px]:w-[calc(100%_-_28px)] grid grid-cols-[1fr_1fr] gap-20 items-center [&_>_p]:text-[clamp(27px,_3vw,_40px)] [&_>_p]:leading-[1.25] [&_>_p]:font-[450] [&_>_p]:tracking-[-0.04em] [&_>_p]:mb-0 [&_>_p_strong]:font-bold [&_h2]:text-[20px] [&_>_div_>_p]:text-muted-foreground [&_>_div_>_p]:text-[12px] [&_>_div_>_p]:max-w-115 [&_a]:inline-flex [&_a]:gap-5 [&_a]:items-center [&_a]:text-primary [&_a]:font-semibold [&_a]:text-[12px] [&_a]:mt-2 max-[760.01px]:grid-cols-[1fr] max-[760.01px]:gap-7.5 max-[760.01px]:[&_>_p]:text-[33px] max-[760.01px]:[&_h2]:text-[19px] max-[760.01px]:[&_h2]:max-w-[350px]">
           <p>
-            Menos pressa.
+            {t("Menos pressa.")}
             <br />
-            <strong>Mais descobertas.</strong>
+            <strong>{t("Mais descobertas.")}</strong>
           </p>
           <div>
-            <h2>Seu próximo capítulo começa com uma escolha.</h2>
+            <h2>{t("Seu próximo capítulo começa com uma escolha.")}</h2>
             <p>
-              Explore os destinos disponíveis, encontre uma acomodação que
-              combina com você e planeje sua próxima pausa.
+              {t(
+                "Explore os destinos disponíveis, encontre uma acomodação que combina com você e planeje sua próxima pausa."
+              )}
             </p>
             <Link href="#buscar">
-              Encontre sua estadia <ArrowRight size={17} aria-hidden="true" />
+              {t("Encontre sua estadia") + " "}
+              <ArrowRight size={17} aria-hidden="true" />
             </Link>
           </div>
         </div>

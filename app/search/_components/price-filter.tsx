@@ -1,4 +1,5 @@
 "use client";
+import { useLocale } from "@/lib/i18n/client";
 
 import { useFormContext, useWatch } from "react-hook-form";
 import { z } from "zod";
@@ -34,13 +35,9 @@ type PriceFilterProps = {
   options: FilterOptions;
 };
 
-const currency = new Intl.NumberFormat("pt-BR", {
-  style: "currency",
-  currency: "BRL",
-});
-
 /** Sincroniza o slider e os campos numéricos com o formulário de filtros. */
 export function PriceFilter({ options }: PriceFilterProps) {
+  const { t, money } = useLocale();
   const {
     register,
     control,
@@ -65,12 +62,12 @@ export function PriceFilter({ options }: PriceFilterProps) {
     );
   return (
     <FieldSet className="price-filter">
-      <FieldLegend>Preço por noite</FieldLegend>
+      <FieldLegend>{t("Preço por noite")}</FieldLegend>
       <p
         id="price-format"
         className="m-0 text-muted-foreground text-[10px] leading-[1.6]"
       >
-        Valores em reais, com até 2 casas decimais.
+        {t("Valores em reais, com até 2 casas decimais.")}
       </p>
       {options.isError ? (
         <div
@@ -78,8 +75,9 @@ export function PriceFilter({ options }: PriceFilterProps) {
           role="status"
         >
           <p>
-            Não foi possível carregar a faixa de preço. Você pode digitar os
-            valores.
+            {t(
+              "Não foi possível carregar a faixa de preço. Você pode digitar os valores."
+            )}
           </p>
           <Button
             type="button"
@@ -87,7 +85,7 @@ export function PriceFilter({ options }: PriceFilterProps) {
             size="sm"
             onClick={options.onRetry}
           >
-            Recarregar faixa de preço
+            {t("Recarregar faixa de preço")}
           </Button>
         </div>
       ) : options.isPending ? (
@@ -95,15 +93,16 @@ export function PriceFilter({ options }: PriceFilterProps) {
           className="m-0 text-muted-foreground text-[10px] leading-[1.6]"
           role="status"
         >
-          Carregando faixa de preço…
+          {t("Carregando faixa de preço…")}
         </p>
       ) : !hasRange ? (
         <p className="m-0 text-muted-foreground text-[10px] leading-[1.6]">
-          Não há faixa de preço disponível neste destino.
+          {t("Não há faixa de preço disponível neste destino.")}
         </p>
       ) : min === max ? (
         <p className="m-0 text-muted-foreground text-[10px] leading-[1.6]">
-          Diária única no destino: {currency.format(min)}.
+          {t("Diária única no destino:") + " "}
+          {money(min)}.
         </p>
       ) : (
         <div className="[padding:4px_10px_0] [&_[data-slot=slider]]:min-h-8">
@@ -126,8 +125,8 @@ export function PriceFilter({ options }: PriceFilterProps) {
               "Preço mínimo por noite",
               "Preço máximo por noite",
             ].map((label, index) => ({
-              "aria-label": label,
-              "aria-valuetext": currency.format(
+              "aria-label": t(label),
+              "aria-valuetext": money(
                 (inverted ? values[1] : values[index]) ?? 0
               ),
             }))}
@@ -136,8 +135,8 @@ export function PriceFilter({ options }: PriceFilterProps) {
             className="price-scale-limits flex justify-between gap-2 text-muted-foreground text-[10px] tabular-nums"
             id="price-scale-limits"
           >
-            <span>{currency.format(min)}</span>
-            <span>{currency.format(max)}</span>
+            <span>{money(min)}</span>
+            <span>{money(max)}</span>
           </div>
         </div>
       )}
@@ -145,7 +144,7 @@ export function PriceFilter({ options }: PriceFilterProps) {
         {(["minPrice", "maxPrice"] as const).map((name) => (
           <Field key={name} data-invalid={!!errors[name]}>
             <FieldLabel htmlFor={name}>
-              {name === "minPrice" ? "Mínimo (R$)" : "Máximo (R$)"}
+              {t(name === "minPrice" ? "Mínimo (R$)" : "Máximo (R$)")}
             </FieldLabel>
             <Input
               type="number"
@@ -153,7 +152,7 @@ export function PriceFilter({ options }: PriceFilterProps) {
               step="0.01"
               min="0"
               id={name}
-              placeholder={name === "minPrice" ? "0" : "Sem limite"}
+              placeholder={name === "minPrice" ? "0" : t("Sem limite")}
               {...register(name, {
                 setValueAs: (value: string) =>
                   value === "" ? undefined : Number(value),
@@ -163,7 +162,7 @@ export function PriceFilter({ options }: PriceFilterProps) {
             />
             {errors[name] && (
               <FieldError id={`${name}-error`}>
-                {errors[name].message}
+                {t(errors[name].message ?? "Informe um preço válido em reais.")}
               </FieldError>
             )}
           </Field>
@@ -174,7 +173,7 @@ export function PriceFilter({ options }: PriceFilterProps) {
           className="m-0 text-muted-foreground text-[10px] leading-[1.6]"
           role="status"
         >
-          Valor fora da escala do destino. O valor digitado será mantido.
+          {t("Valor fora da escala do destino. O valor digitado será mantido.")}
         </p>
       )}
     </FieldSet>

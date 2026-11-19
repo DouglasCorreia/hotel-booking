@@ -1,4 +1,5 @@
 "use client";
+import { useLocale } from "@/lib/i18n/client";
 
 import { useLayoutEffect, useRef, type ComponentProps } from "react";
 import { SlidersHorizontal, X } from "lucide-react";
@@ -9,6 +10,7 @@ import { FiltersForm } from "./filters";
 export function MobileFilters(
   formProps: Omit<ComponentProps<typeof FiltersForm>, "onCommit">
 ) {
+  const { t } = useLocale();
   const trigger = useRef<HTMLButtonElement>(null);
   const closeButton = useRef<HTMLButtonElement>(null);
   const dialog = useRef<HTMLDialogElement>(null);
@@ -53,7 +55,7 @@ export function MobileFilters(
         variant="outline"
         size="icon"
         className="size-11"
-        aria-label="Abrir filtros"
+        aria-label={t("Abrir filtros")}
         aria-haspopup="dialog"
         aria-controls="mobile-filters"
         onClick={openFilters}
@@ -73,7 +75,7 @@ export function MobileFilters(
         <div className="flex h-full flex-col">
           <div className="flex shrink-0 items-center justify-between gap-3 p-4">
             <h2 id="mobile-filters-heading" className="m-0 text-xl">
-              Filtros
+              {t("Filtros")}
             </h2>
             <Button
               ref={closeButton}
@@ -81,7 +83,7 @@ export function MobileFilters(
               variant="outline"
               size="icon"
               className="size-11"
-              aria-label="Fechar filtros"
+              aria-label={t("Fechar filtros")}
               onClick={closeFilters}
             >
               <X aria-hidden="true" />

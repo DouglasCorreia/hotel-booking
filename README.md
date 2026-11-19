@@ -1,8 +1,8 @@
 # Lumina Hotels
 
-Aplicação de busca e reserva **simulada** de hotéis, em português brasileiro. O repositório inclui o frontend e a mock API fornecida.
+Aplicação de busca e reserva **simulada** de hotéis em português brasileiro (`pt-BR`) e inglês americano (`en-US`). O repositório inclui o frontend e a mock API fornecida.
 
-Atualizado em 18 de novembro de 2026.
+Atualizado em 19 de novembro de 2026.
 
 **[Abrir a demonstração online](https://hotel-booking-sandy-one.vercel.app/)** · [Verificar a mock API](https://hotel-booking-8pbs.onrender.com/hotels)
 
@@ -16,6 +16,11 @@ O frontend está publicado na **Vercel** e a mock API está no **Render**. A dem
 2. **Detalhes.** Abra um hotel, confira a galeria e as condições da estadia e selecione um quarto disponível. Se os filtros deixarem a busca vazia, use **Limpar filtros** para recuperar os resultados.
 3. **Checkout.** Use os dados fictícios abaixo. Na etapa **Pagamento simulado**, tente o cartão de recusa e depois o de aprovação. Na revisão, aplique `LUMINA10`, confira a composição do total, aceite os termos e confirme.
 4. **Confirmação.** Confira o número da reserva, os dados da estadia e o valor registrado. Recarregue a página da confirmação para verificar a consulta pelo identificador.
+
+Para avaliar os idiomas na versão do repositório, use o seletor do cabeçalho ou do menu mobile.
+
+1. **Troque o idioma na busca.** Aplique filtros, escolha uma ordenação e, se houver mais resultados, avance para outra página. Troque para inglês e confira que destino, datas, ocupação, filtros, ordenação e página continuam na URL sob `/en-US/search`.
+2. **Retome o checkout.** Preencha os dados fictícios, avance até a revisão e aplique `LUMINA10`. Troque o idioma e confirme o aviso. Confira a seleção, os nomes, o contato e o desconto no resumo. Informe novamente o CPF e o cartão de teste e aceite os termos no idioma escolhido para concluir.
 
 | Campo                          | Dados de teste                           |
 | ------------------------------ | ---------------------------------------- |
@@ -95,13 +100,15 @@ O servidor é uma ferramenta de desenvolvimento executada por `scripts/mock-api.
 
 ## Rotas
 
-| Rota                        | Uso                                    |
-| --------------------------- | -------------------------------------- |
-| `/`                         | Pesquisa e hotéis em destaque          |
-| `/search`                   | Catálogo com contexto na URL           |
-| `/hotel/[hotelId]`          | Detalhes e seleção de quarto           |
-| `/checkout`                 | Hóspedes, pagamento simulado e revisão |
-| `/confirmation/[bookingId]` | Consulta da confirmação                |
+| Português                   | Inglês                            | Uso                                    |
+| --------------------------- | --------------------------------- | -------------------------------------- |
+| `/`                         | `/en-US`                          | Pesquisa e hotéis em destaque          |
+| `/search`                   | `/en-US/search`                   | Catálogo com contexto na URL           |
+| `/hotel/[hotelId]`          | `/en-US/hotel/[hotelId]`          | Detalhes e seleção de quarto           |
+| `/checkout`                 | `/en-US/checkout`                 | Hóspedes, pagamento simulado e revisão |
+| `/confirmation/[bookingId]` | `/en-US/confirmation/[bookingId]` | Consulta da confirmação                |
+
+A raiz usa o idioma escolhido anteriormente no seletor e abre em português na primeira visita. Use `/?lang=pt-BR` para abrir explicitamente a página inicial em português.
 
 ## Verificações
 
@@ -249,6 +256,8 @@ A reorganização da instalação e dos arquivos está registrada no [PRD de org
 A ampliação do catálogo está registrada no [PRD de filtros múltiplos](docs/prd/feature-filtros-multiplos.md), que inclui os filtros de comodidades e propriedade antes excluídos do recorte inicial.
 
 O [PRD do checkout em etapas](docs/prd/feature-checkout-em-etapas.md) registra as regras do pagamento simulado, do preço e da recuperação do rascunho.
+
+O [PRD de internacionalização](docs/prd/feature-i18n.md) descreve a jornada bilíngue, o catálogo traduzido e a recuperação offline.
 
 ## Uso de IA e fluxo de trabalho
 

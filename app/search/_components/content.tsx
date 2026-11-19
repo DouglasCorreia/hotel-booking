@@ -1,4 +1,5 @@
 "use client";
+import { useLocale } from "@/lib/i18n/client";
 import {
   useEffect,
   useLayoutEffect,
@@ -41,6 +42,7 @@ function desktopSnapshot() {
 }
 
 export function SearchContent() {
+  const { t, href, number, quantity } = useLocale();
   const isMobile = useSyncExternalStore(
     subscribeToMobile,
     isMobileCatalog,
@@ -116,19 +118,19 @@ export function SearchContent() {
   useEffect(() => {
     if (search && filters && hotels.isSuccess && filters.page > pageCount)
       router.replace(
-        `/search?${searchParamsFor(search, { ...filters, page: 1 })}`
+        href(`/search?${searchParamsFor(search, { ...filters, page: 1 })}`)
       );
-  }, [search, filters, hotels.isSuccess, pageCount, router]);
+  }, [search, filters, hotels.isSuccess, pageCount, router, href]);
   if (!search)
     return (
       <>
         <div className="[padding-block:38px_30px] [&_h1]:mb-2.5 [&_>_p:last-child]:mb-0 [&_>_div_>_p:last-child]:mb-0 max-[760.01px]:[padding-block:30px_25px] max-[760.01px]:[&_h1]:text-[33px] max-[760.01px]:[&_>_.muted]:text-[12px]">
           <p className="eyebrow text-primary text-[11px] font-[650] tracking-[0.1em] uppercase mb-3">
-            Vamos começar
+            {t("Vamos começar")}
           </p>
-          <h1>Encontre sua próxima estadia.</h1>
+          <h1>{t("Encontre sua próxima estadia.")}</h1>
           <p className="muted text-muted-foreground">
-            Preencha ou corrija destino, datas e hóspedes para pesquisar.
+            {t("Preencha ou corrija destino, datas e hóspedes para pesquisar.")}
           </p>
         </div>
         <SearchForm key={params.toString()} />
@@ -142,13 +144,17 @@ export function SearchContent() {
       <div className="flex items-center justify-between gap-6 [padding-block:38px_30px] [&_h1]:mb-2.5 [&_h1]:text-[34px] max-[760.01px]:items-start max-[760.01px]:gap-3 max-[760.01px]:[padding-block:30px_22px] max-[760.01px]:[&_h1]:text-[27px] max-[760.01px]:[&_.muted]:text-[11px]">
         <div className="min-w-0 wrap-break-word">
           <p className="eyebrow text-primary text-[11px] font-[650] tracking-[0.1em] uppercase mb-3">
-            Seu próximo destino
+            {t("Seu próximo destino")}
           </p>
           <h1>{search.destination}</h1>
           <p className="muted mb-0 text-muted-foreground">
             {hotels.data
-              ? `${hotels.data.total} hotéis encontrados`
-              : "Encontre um lugar para chamar de seu por alguns dias."}
+              ? quantity(
+                  hotels.data.total,
+                  "{count} hotel encontrado",
+                  "{count} hotéis encontrados"
+                )
+              : t("Encontre um lugar para chamar de seu por alguns dias.")}
           </p>
         </div>
         <div className="flex shrink-0 items-center gap-2">
@@ -158,16 +164,18 @@ export function SearchContent() {
             onClick={async () => {
               try {
                 await navigator.clipboard.writeText(window.location.href);
-                toast.success("Link da busca copiado.");
+                toast.success(t("Link da busca copiado."));
               } catch {
                 toast.error(
-                  "Copie o endereço da barra do navegador para compartilhar."
+                  t("Copie o endereço da barra do navegador para compartilhar.")
                 );
               }
             }}
           >
             <Copy aria-hidden="true" />
-            <span className="max-[760.01px]:sr-only">Compartilhar busca</span>
+            <span className="max-[760.01px]:sr-only">
+              {t("Compartilhar busca")}
+            </span>
           </Button>
           {isMobile && filters && (
             <MobileFilters
@@ -181,12 +189,13 @@ export function SearchContent() {
       </div>
       {!filters ? (
         <Feedback
-          title="Revise os filtros da busca"
+          title={t("Revise os filtros da busca")}
           href={`/search?${searchParamsFor(search)}`}
-          linkLabel="Remover filtros inválidos"
+          linkLabel={t("Remover filtros inválidos")}
         >
-          Há preços, comodidades, tipos de propriedade, avaliação, ordenação ou
-          página inválidos no endereço.
+          {t(
+            "Há preços, comodidades, tipos de propriedade, avaliação, ordenação ou página inválidos no endereço."
+          )}
         </Feedback>
       ) : (
         <div className="grid grid-cols-[250px_minmax(0,_1fr)] gap-7 items-start max-[1200.01px]:grid-cols-[220px_minmax(0,_1fr)] max-[1200.01px]:gap-5 max-[760.01px]:grid-cols-[1fr] max-[760.01px]:gap-5.5">
@@ -207,7 +216,7 @@ export function SearchContent() {
           >
             {hotels.isFetching && (
               <p className="muted text-muted-foreground" role="status">
-                Atualizando hospedagens…
+                {t("Atualizando hospedagens…")}
               </p>
             )}
             {destination.isError ? (
@@ -218,8 +227,8 @@ export function SearchContent() {
             ) : destination.isPending ? (
               <LoadingCards />
             ) : !isDestinationValid ? (
-              <Feedback title="Destino não encontrado">
-                Selecione um destino válido nas sugestões da busca.
+              <Feedback title={t("Destino não encontrado")}>
+                {t("Selecione um destino válido nas sugestões da busca.")}
               </Feedback>
             ) : hotels.isPending ? (
               <LoadingCards />
@@ -229,19 +238,24 @@ export function SearchContent() {
                 onRetry={() => hotels.refetch()}
               />
             ) : hotels.data.total === 0 ? (
-              <Feedback title="Nenhum hotel por aqui ainda" isEmpty>
-                Experimente outro destino ou remova os filtros para encontrar
-                mais opções.
+              <Feedback title={t("Nenhum hotel por aqui ainda")} isEmpty>
+                {t(
+                  "Experimente outro destino ou remova os filtros para encontrar mais opções."
+                )}
               </Feedback>
             ) : (
               <>
                 <div className="flex justify-between text-muted-foreground text-[10px] px-0.5">
                   <span>
-                    Mostrando {(filters.page - 1) * 10 + 1}–
-                    {Math.min(filters.page * 10, hotels.data.total)} de{" "}
-                    {hotels.data.total}
+                    {t("Mostrando {first}–{last} de {total}", {
+                      first: number((filters.page - 1) * 10 + 1),
+                      last: number(
+                        Math.min(filters.page * 10, hotels.data.total)
+                      ),
+                      total: number(hotels.data.total),
+                    })}
                   </span>
-                  <span>Valores em reais</span>
+                  <span>{t("Valores em reais")}</span>
                 </div>
                 <div className="flex flex-col gap-4.5" ref={cards}>
                   {hotels.data.data.map((hotel) => (
@@ -255,7 +269,7 @@ export function SearchContent() {
                 {pageCount > 1 && (
                   <nav
                     className="flex items-center justify-center gap-5.5 mt-4 [&_>_span]:text-[11px] [&_>_span]:text-muted-foreground [&_[aria-disabled=true]]:opacity-[0.4] [&_[aria-disabled=true]]:pointer-events-none max-[760.01px]:gap-3 max-[760.01px]:[&_>_span]:text-[9px] max-[760.01px]:[&_>_a]:text-[10px]"
-                    aria-label="Paginação dos hotéis"
+                    aria-label={t("Paginação dos hotéis")}
                   >
                     <Button
                       variant="outline"
@@ -265,14 +279,19 @@ export function SearchContent() {
                       <Link
                         aria-disabled={filters.page <= 1}
                         tabIndex={filters.page <= 1 ? -1 : undefined}
-                        href={`/search?${searchParamsFor(search, { ...filters, page: Math.max(1, filters.page - 1) })}`}
+                        href={href(
+                          `/search?${searchParamsFor(search, { ...filters, page: Math.max(1, filters.page - 1) })}`
+                        )}
                       >
                         <ArrowLeft aria-hidden="true" />
-                        Anterior
+                        {t("Anterior")}
                       </Link>
                     </Button>
                     <span>
-                      Página {filters.page} de {pageCount}
+                      {t("Página {page} de {total}", {
+                        page: number(filters.page),
+                        total: number(pageCount),
+                      })}
                     </span>
                     <Button
                       variant="outline"
@@ -282,9 +301,11 @@ export function SearchContent() {
                       <Link
                         aria-disabled={filters.page >= pageCount}
                         tabIndex={filters.page >= pageCount ? -1 : undefined}
-                        href={`/search?${searchParamsFor(search, { ...filters, page: Math.min(pageCount, filters.page + 1) })}`}
+                        href={href(
+                          `/search?${searchParamsFor(search, { ...filters, page: Math.min(pageCount, filters.page + 1) })}`
+                        )}
                       >
-                        Próxima
+                        {t("Próxima")}
                         <ArrowRight aria-hidden="true" />
                       </Link>
                     </Button>

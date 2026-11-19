@@ -1,5 +1,6 @@
 "use client";
-import { useId, useState } from "react";
+import { useLocale } from "@/lib/i18n/client";
+import { useId, useState, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -27,6 +28,13 @@ import {
   type Search,
 } from "../model";
 
+function subscribeToHydration() {
+  return () => {};
+}
+
+const clientReady = () => true;
+const serverReady = () => false;
+
 export function SearchForm({
   initial,
   compact = false,
@@ -39,6 +47,12 @@ export function SearchForm({
   /** Recebe a busca validada e substitui a navegação padrão para `/search`. */
   onSearch?: (values: Search) => void;
 }) {
+  const { t, href } = useLocale();
+  const isHydrated = useSyncExternalStore(
+    subscribeToHydration,
+    clientReady,
+    serverReady
+  );
   const router = useRouter();
   const id = useId();
   const [isOpen, setIsOpen] = useState(false);
@@ -78,7 +92,7 @@ export function SearchForm({
     }
     setIsOpen(false);
     if (onSearch) onSearch(values);
-    else router.push(`/search?${searchParamsFor(values)}`);
+    else router.push(href(`/search?${searchParamsFor(values)}`));
   }
   return (
     <form
@@ -97,7 +111,7 @@ export function SearchForm({
         >
           <FieldLabel htmlFor={`${id}-destination`}>
             <MapPin size={14} aria-hidden="true" />
-            Destino
+            {t("Destino")}
           </FieldLabel>
           <Input
             {...register("destination", {
@@ -108,6 +122,7 @@ export function SearchForm({
               },
             })}
             id={`${id}-destination`}
+            disabled={!isHydrated}
             role="combobox"
             aria-autocomplete="list"
             aria-expanded={isOpen && destination.length > 0}
@@ -121,7 +136,7 @@ export function SearchForm({
             aria-describedby={
               errors.destination ? `${id}-destination-error` : undefined
             }
-            placeholder="Para onde vamos?"
+            placeholder={t("Para onde vamos?")}
             autoComplete="off"
             onFocus={() => setIsOpen(true)}
             onBlur={() => setIsOpen(false)}
@@ -149,7 +164,10 @@ export function SearchForm({
           />
           {errors.destination && (
             <FieldError id={`${id}-destination-error`}>
-              {errors.destination.message}
+              {t(
+                errors.destination.message ??
+                  "Selecione um destino nas sugestões."
+              )}
             </FieldError>
           )}
           {isOpen && destination.length > 0 && (
@@ -157,7 +175,7 @@ export function SearchForm({
               <div
                 id={`${id}-suggestions`}
                 role="listbox"
-                aria-label="Destinos sugeridos"
+                aria-label={t("Destinos sugeridos")}
               >
                 {(suggestions.isFetching || isWaiting) && (
                   <p role="status">
@@ -166,15 +184,16 @@ export function SearchForm({
                       size={15}
                       aria-hidden="true"
                     />
-                    Buscando destinos…
+                    {t("Buscando destinos…")}
                   </p>
                 )}
                 {!isWaiting &&
                   !suggestions.isFetching &&
                   suggestions.isError && (
                     <p role="status">
-                      Não foi possível buscar. Edite o destino para tentar
-                      novamente.
+                      {t(
+                        "Não foi possível buscar. Edite o destino para tentar novamente."
+                      )}
                     </p>
                   )}
                 {!isWaiting &&
@@ -182,7 +201,7 @@ export function SearchForm({
                   !suggestions.isError &&
                   items.length === 0 && (
                     <p role="status">
-                      Nenhum destino encontrado. Tente outro nome.
+                      {t("Nenhum destino encontrado. Tente outro nome.")}
                     </p>
                   )}
                 {items.map((item, index) => (
@@ -199,7 +218,7 @@ export function SearchForm({
                     <MapPin size={18} aria-hidden="true" />
                     <span>
                       <strong>{item.name}</strong>
-                      <small>{item.country}</small>
+                      <small>{t(item.country)}</small>
                     </span>
                     <ArrowRight size={15} aria-hidden="true" />
                   </button>
@@ -225,13 +244,13 @@ export function SearchForm({
             />
             {errors[name] && (
               <FieldError id={`${id}-${name}-error`}>
-                {errors[name].message}
+                {t(errors[name].message ?? "Informe uma data válida.")}
               </FieldError>
             )}
           </Field>
         ))}
         <fieldset className="border-0 p-0 m-0 grid grid-cols-[repeat(3,_minmax(0,_1fr))] gap-[7px] max-[1200.01px]:col-[1_/_3] max-[760.01px]:col-[1_/_-1] max-[760.01px]:gap-3">
-          <legend className="sr-only">Hóspedes e quartos</legend>
+          <legend className="sr-only">{t("Hóspedes e quartos")}</legend>
           {(
             [
               ["adults", "Adultos", 1],
@@ -240,7 +259,7 @@ export function SearchForm({
             ] as const
           ).map(([name, label, min]) => (
             <Field key={name} data-invalid={!!errors[name]}>
-              <FieldLabel htmlFor={`${id}-${name}`}>{label}</FieldLabel>
+              <FieldLabel htmlFor={`${id}-${name}`}>{t(label)}</FieldLabel>
               <Input
                 type="number"
                 min={min}
@@ -254,7 +273,7 @@ export function SearchForm({
               />
               {errors[name] && (
                 <FieldError id={`${id}-${name}-error`}>
-                  {errors[name].message}
+                  {t(errors[name].message ?? "Informe uma data válida.")}
                 </FieldError>
               )}
             </Field>
@@ -263,10 +282,10 @@ export function SearchForm({
         <Button
           type="submit"
           className="h-[43px] mt-[21px] px-5 max-[1200.01px]:mt-5 max-[760.01px]:col-[1_/_-1] max-[760.01px]:mt-0 max-[760.01px]:w-full max-[760.01px]:h-[45px]"
-          disabled={isSubmitting}
+          disabled={!isHydrated || isSubmitting}
         >
           <SearchIcon aria-hidden="true" />
-          Buscar hotéis
+          {t("Buscar hotéis")}
         </Button>
       </FieldGroup>
     </form>

@@ -1,7 +1,9 @@
+import { useLocale } from "@/lib/i18n/client";
 import { useId, useRef } from "react";
 import { Button } from "@/components/ui/button";
 
 export function Terms({ policy }: { policy: string }) {
+  const { t } = useLocale();
   const titleId = useId();
   const dialog = useRef<HTMLDialogElement>(null);
 
@@ -12,7 +14,7 @@ export function Terms({ policy }: { policy: string }) {
         variant="outline"
         onClick={() => dialog.current?.showModal()}
       >
-        Ler os termos da reserva
+        {t("Ler os termos da reserva")}
       </Button>
       <dialog
         ref={dialog}
@@ -21,25 +23,29 @@ export function Terms({ policy }: { policy: string }) {
       >
         <div className="space-y-4 text-sm leading-relaxed">
           <h2 id={titleId} className="text-xl font-semibold">
-            Termos da reserva simulada
+            {t("Termos da reserva simulada")}
           </h2>
           <p>
-            A Lumina Hotels é uma demonstração. Nenhum valor será cobrado,
-            nenhum quarto será bloqueado e nenhum e-mail será enviado.
+            {t(
+              "A Lumina Hotels é uma demonstração. Nenhum valor será cobrado, nenhum quarto será bloqueado e nenhum e-mail será enviado."
+            )}
           </p>
           <p>
-            Use dados fictícios. Nomes e contato são registrados na mock API e
-            ficam disponíveis no endereço da confirmação enquanto a reserva
-            existir.
+            {t(
+              "Use dados fictícios. Nomes e contato são registrados na mock API e ficam disponíveis no endereço da confirmação enquanto a reserva existir."
+            )}
           </p>
           <p>
-            O valor apresentado considera as datas, a ocupação, a diária, o
-            cupom e os encargos simulados. A política exibida para esta
-            hospedagem é <strong>{policy}</strong>.
+            {t(
+              "O valor apresentado considera as datas, a ocupação, a diária, o cupom e os encargos simulados. A política exibida para esta hospedagem é"
+            ) + " "}
+            <strong>{policy}</strong>.
           </p>
-          <p>O aceite se refere à seleção e ao total exibidos na revisão.</p>
+          <p>
+            {t("O aceite se refere à seleção e ao total exibidos na revisão.")}
+          </p>
           <Button type="button" onClick={() => dialog.current?.close()}>
-            Fechar termos
+            {t("Fechar termos")}
           </Button>
         </div>
       </dialog>

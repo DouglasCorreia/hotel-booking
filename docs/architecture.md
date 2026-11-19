@@ -1,6 +1,6 @@
 # Lumina Hotels — Arquitetura
 
-Atualizado em 18 de novembro de 2026.
+Atualizado em 19 de novembro de 2026.
 
 ## Stack e limites da aplicação
 
@@ -37,6 +37,12 @@ As props de componentes complexos têm JSDoc junto à declaração TypeScript. O
 - As funções das features chamam a mock API diretamente e validam as respostas com Zod. O cliente HTTP define timeout de 12 segundos. As consultas do TanStack Query podem repetir até duas vezes em falhas transitórias. A criação da reserva não tem retry automático.
 - O [README](../README.md#referência-da-api-simulada) lista os endpoints, os parâmetros de consulta e as opções para simular lentidão e falhas.
 
+## Internacionalização
+
+- O Proxy encaminha as rotas sem prefixo para o segmento interno `app/[lang]` em `pt-BR`. O prefixo público `/en-US` seleciona inglês. Na raiz `/`, o cookie `lumina-locale` registra a escolha explícita e pode encaminhar para `/en-US`. A URL `/?lang=pt-BR` abre explicitamente a página inicial em português.
+- Os textos de interface têm o português como origem. As traduções em inglês ficam em `lib/i18n/en-US.json`. As traduções do catálogo ficam em `lib/i18n/catalog.en-US.json`, com versões em português para alguns nomes de quarto em `lib/i18n/catalog.pt-BR.json`. Os dicionários do catálogo usam os textos publicados como chaves. Quando falta uma tradução, a interface exibe o original e indica o idioma de origem no HTML.
+- A troca de idioma preserva o endereço equivalente, os parâmetros e a âncora. No checkout, a troca confirmada recarrega a página no idioma escolhido. A página restaura o rascunho do `sessionStorage` e abre a etapa de hóspedes. CPF, cartão e aceite são solicitados novamente.
+
 ## Estado e fluxo de dados
 
 | Estado                     | Fonte e duração                                                                                                                                                                                                         |
@@ -57,7 +63,9 @@ A mock API aceita a criação sem validar o contrato e permite consultar reserva
 
 ## PWA e conexão
 
-O App Router publica o manifesto em `/manifest.webmanifest`. No build de produção, o navegador registra `/sw.js` em contexto seguro. O service worker salva somente `/offline.html` no Cache Storage e serve a tela se falhar uma navegação GET da mesma origem. Os dados do catálogo e da reserva são consultados pela rede.
+O App Router publica os manifestos em `/manifest.webmanifest` e `/en-US/manifest.webmanifest`. Ambos usam `id`, `start_url` e `scope` iguais a `/`, com uma única identidade de instalação.
+
+No build de produção, o navegador registra `/sw.js` em contexto seguro. O service worker guarda `/offline.html` no Cache Storage e usa essa tela quando falha uma navegação GET da mesma origem. A tela usa inglês em URLs com o prefixo `/en-US`. Na raiz, consulta a preferência gravada no cache `lumina-locale`, com português como padrão. A URL `/?lang=pt-BR` e as demais rotas sem prefixo usam português. Os dados do catálogo e da reserva são consultados pela rede.
 
 Ao atualizar a tela offline, incremente a versão do cache em `public/sw.js`. A nova versão do worker assume o controle após fechar as janelas que usam a versão anterior e remove os caches offline obsoletos da Lumina.
 

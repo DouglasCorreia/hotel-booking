@@ -1,3 +1,4 @@
+import { useLocale } from "@/lib/i18n/client";
 import { useId, type ComponentProps } from "react";
 import {
   Field,
@@ -30,6 +31,7 @@ export function CheckoutField({
   /** Mensagem que marca o campo como inválido e entra na descrição acessível. */
   error?: string;
 }) {
+  const { t } = useLocale();
   const id = useId();
   const descriptionIds = [
     describedBy,
@@ -50,7 +52,7 @@ export function CheckoutField({
           {description}
         </FieldDescription>
       )}
-      {error && <FieldError id={`${id}-error`}>{error}</FieldError>}
+      {error && <FieldError id={`${id}-error`}>{t(error)}</FieldError>}
     </Field>
   );
 }
@@ -67,6 +69,7 @@ export function GuestFields({
   /** Total de crianças da seleção, usado para montar os campos de acompanhantes. */
   childCount: number;
 }) {
+  const { t } = useLocale();
   const {
     register,
     setValue,
@@ -76,24 +79,28 @@ export function GuestFields({
     <>
       <fieldset className="grid gap-4 sm:grid-cols-2">
         <legend className="mb-3 font-semibold">
-          Titular da reserva · Adulto 1
+          {t("Titular da reserva · Adulto 1")}
         </legend>
         <CheckoutField
-          label="Nome completo"
+          label={t("Nome completo")}
           autoComplete="off"
           error={errors.guest?.name?.message}
           {...register("guest.name")}
         />
         <CheckoutField
-          label="E-mail"
+          label={t("E-mail")}
           autoComplete="off"
           type="email"
           error={errors.guest?.email?.message}
           {...register("guest.email")}
         />
         <CheckoutField
-          label="Telefone"
-          description="Informe o DDD. O código do país (+55) é opcional."
+          label={t("Telefone")}
+          description={
+            t("Informe o DDD. O código do país (+55) é opcional.") +
+            " " +
+            t("Exemplo fictício de telefone: +55 (11) 99999-1234.")
+          }
           autoComplete="off"
           type="tel"
           placeholder="(11) 99999-9999"
@@ -108,6 +115,9 @@ export function GuestFields({
         />
         <CheckoutField
           label="CPF"
+          description={t(
+            "CPF é o documento fiscal brasileiro. Use o exemplo fictício 529.982.247-25."
+          )}
           inputMode="numeric"
           autoComplete="off"
           placeholder="000.000.000-00"
@@ -123,14 +133,14 @@ export function GuestFields({
       </fieldset>
       {adults + childCount > 1 && (
         <fieldset className="grid gap-4 border-t border-border pt-4 sm:grid-cols-2">
-          <legend className="pe-3 font-semibold">Demais hóspedes</legend>
+          <legend className="pe-3 font-semibold">{t("Demais hóspedes")}</legend>
           {Array.from({ length: adults + childCount - 1 }, (_, index) => (
             <CheckoutField
               key={index}
               label={
                 index < adults - 1
-                  ? `Nome do adulto ${index + 2}`
-                  : `Nome da criança ${index - adults + 2}`
+                  ? t("Nome do adulto {index}", { index: index + 2 })
+                  : t("Nome da criança {index}", { index: index - adults + 2 })
               }
               error={errors.companions?.[index]?.message}
               {...register(`companions.${index}`)}
@@ -148,6 +158,7 @@ export function PaymentFieldsForm({
   /** Formulário dos dados de cartão fictício mantidos em memória durante o checkout. */
   form: UseFormReturn<PaymentFields>;
 }) {
+  const { t } = useLocale();
   const {
     register,
     setValue,
@@ -156,20 +167,23 @@ export function PaymentFieldsForm({
   return (
     <>
       <div className="rounded-md bg-secondary p-4 text-sm leading-relaxed">
-        <p className="font-semibold">Use um dos cartões de teste</p>
+        <p className="font-semibold">{t("Use um dos cartões de teste")}</p>
         <p>
-          Aprovação: <code>{approvedCard.replace(/.{4}(?=.)/g, "$& ")}</code>
+          {t("Aprovação:") + " "}
+          <code>{approvedCard.replace(/.{4}(?=.)/g, "$& ")}</code>
         </p>
         <p>
-          Recusa: <code>{declinedCard.replace(/.{4}(?=.)/g, "$& ")}</code>
+          {t("Recusa:") + " "}
+          <code>{declinedCard.replace(/.{4}(?=.)/g, "$& ")}</code>
         </p>
         <p className="mt-1 text-muted-foreground">
-          Informe o mês atual ou uma data futura e qualquer código de três
-          dígitos.
+          {t(
+            "Informe o mês atual ou uma data futura e qualquer código de três dígitos."
+          )}
         </p>
       </div>
       <CheckoutField
-        label="Número do cartão de teste"
+        label={t("Número do cartão de teste")}
         inputMode="numeric"
         autoComplete="off"
         error={errors.number?.message}
@@ -177,9 +191,9 @@ export function PaymentFieldsForm({
       />
       <div className="grid grid-cols-2 gap-4">
         <CheckoutField
-          label="Validade"
+          label={t("Validade")}
           inputMode="numeric"
-          placeholder="MM/AA"
+          placeholder={t("MM/AA")}
           autoComplete="off"
           error={errors.expiry?.message}
           {...register("expiry")}
@@ -196,7 +210,7 @@ export function PaymentFieldsForm({
           }}
         />
         <CheckoutField
-          label="Código de segurança"
+          label={t("Código de segurança")}
           inputMode="numeric"
           autoComplete="off"
           placeholder="123"

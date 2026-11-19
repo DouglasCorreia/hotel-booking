@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import { HotelContent } from "./_components/content";
+import { HotelContent } from "@/app/hotel/[hotelId]/_components/content";
 import { LoadingCards } from "@/components/feedback";
 import { getHotel } from "@/features/hotels/api";
+import { getTranslator } from "@/lib/i18n/server";
 
 type HotelPageProps = {
   params: Promise<{ hotelId: string }>;
@@ -11,9 +12,9 @@ type HotelPageProps = {
 export async function generateMetadata({
   params,
 }: HotelPageProps): Promise<Metadata> {
-  const { hotelId } = await params;
+  const [{ hotelId }, t] = await Promise.all([params, getTranslator()]);
   const id = /^\d+$/.test(hotelId) ? Number(hotelId) : NaN;
-  const fallback = { title: "Conheça sua próxima estadia" };
+  const fallback = { title: t("Conheça sua próxima estadia") };
   if (!Number.isSafeInteger(id)) return fallback;
 
   try {

@@ -1,4 +1,5 @@
 "use client";
+import { useLocale } from "@/lib/i18n/client";
 import { useRef, useState } from "react";
 import { ArrowLeft, ArrowRight, Expand, X } from "lucide-react";
 import { Photo } from "@/components/photo";
@@ -12,6 +13,7 @@ type GalleryProps = {
 };
 
 export function Gallery({ images, name }: GalleryProps) {
+  const { t, number } = useLocale();
   const dialog = useRef<HTMLDialogElement>(null);
   const [current, setCurrent] = useState(0);
   function move(offset: number) {
@@ -26,7 +28,10 @@ export function Gallery({ images, name }: GalleryProps) {
               className={`border-0 p-0 relative overflow-hidden [&_.photo]:h-full [&:hover_img]:[transform:scale(1.025)] ${index === 0 ? "row-[span_2] max-[760.01px]:row-auto max-[760.01px]:col-[1_/_-1]" : ""}`}
               type="button"
               key={src ?? index}
-              aria-label={`Ampliar foto ${index + 1} de ${name}`}
+              aria-label={t("Ampliar foto {index} de {name}", {
+                index: number(index + 1),
+                name,
+              })}
               onClick={() => {
                 if (src) {
                   setCurrent(index);
@@ -37,14 +42,17 @@ export function Gallery({ images, name }: GalleryProps) {
             >
               <Photo
                 src={src}
-                alt={`${name} — foto ${index + 1}`}
+                alt={t("Foto {index} de {name}", {
+                  index: number(index + 1),
+                  name,
+                })}
                 preload={index === 0}
                 sizes={index === 0 ? "(max-width: 700px) 100vw, 65vw" : "35vw"}
               />
               {index === 0 && (
                 <span className="absolute bottom-5 left-5 bg-white rounded-[5px] text-[10px] font-[550] [padding:9px_13px] flex items-center gap-[7px]">
                   <Expand size={14} aria-hidden="true" />
-                  Ver fotos
+                  {t("Ver fotos")}
                 </span>
               )}
             </button>
@@ -65,7 +73,7 @@ export function Gallery({ images, name }: GalleryProps) {
           <Button
             variant="outline"
             size="icon"
-            aria-label="Fechar galeria"
+            aria-label={t("Fechar galeria")}
             onClick={() => dialog.current?.close()}
           >
             <X aria-hidden="true" />
@@ -73,23 +81,29 @@ export function Gallery({ images, name }: GalleryProps) {
         </div>
         <Photo
           src={images[current]}
-          alt={`${name} — foto ${current + 1}`}
+          alt={t("Foto {index} de {name}", {
+            index: number(current + 1),
+            name,
+          })}
           sizes="90vw"
         />
         <div className="flex items-center justify-center gap-5 mt-[15px] text-[12px]">
           <Button
             variant="outline"
-            aria-label="Foto anterior"
+            aria-label={t("Foto anterior")}
             onClick={() => move(-1)}
           >
             <ArrowLeft aria-hidden="true" />
           </Button>
           <span>
-            {current + 1} de {images.length}
+            {t("{current} de {total}", {
+              current: number(current + 1),
+              total: number(images.length),
+            })}
           </span>
           <Button
             variant="outline"
-            aria-label="Próxima foto"
+            aria-label={t("Próxima foto")}
             onClick={() => move(1)}
           >
             <ArrowRight aria-hidden="true" />

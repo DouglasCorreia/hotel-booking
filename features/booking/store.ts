@@ -12,11 +12,13 @@ type BookingState = {
   selection: Selection | null;
   draft: CheckoutDraft | null;
   isReady: boolean;
+  isSubmitting: boolean;
   select: (selection: Selection) => void;
   acceptPrice: (pricePerNight: number) => void;
   saveDraft: (draft: CheckoutDraft) => void;
   complete: (selection: Selection) => void;
   ready: () => void;
+  setSubmitting: (isSubmitting: boolean) => void;
 };
 
 const session: StateStorage = {
@@ -49,6 +51,8 @@ export const useBookingStore = create<BookingState>()(
       selection: null,
       draft: null,
       isReady: false,
+      isSubmitting: false,
+      setSubmitting: (isSubmitting) => set({ isSubmitting }),
       select: (selection) => set({ selection, draft: null }),
       acceptPrice: (pricePerNight) =>
         set(({ selection }) => ({

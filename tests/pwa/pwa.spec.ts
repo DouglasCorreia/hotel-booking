@@ -45,6 +45,39 @@ test("publica o manifesto, os ícones e o script de instalação", async ({
   expect(worker.ok()).toBeTruthy();
   expect(worker.headers()["content-type"]).toContain("javascript");
   expect(worker.headers()["cache-control"]).toContain("no-cache");
+
+  await page.goto("/en-US");
+  await expect(manifestLink).toHaveAttribute(
+    "href",
+    "/en-US/manifest.webmanifest"
+  );
+  const localizedManifest = await request.get("/en-US/manifest.webmanifest");
+  expect(localizedManifest.ok()).toBeTruthy();
+  expect(await localizedManifest.json()).toMatchObject({
+    id: manifest.id,
+    start_url: manifest.start_url,
+    scope: manifest.scope,
+    lang: "en-US",
+    description: expect.stringContaining("Explore destinations in Brazil"),
+  });
+});
+
+test("opens both locales on dynamic routes in production", async ({ page }) => {
+  for (const [prefix, lang, missingBooking] of [
+    ["", "pt-BR", "Reserva não encontrada"],
+    ["/en-US", "en-US", "Booking not found"],
+  ]) {
+    await page.goto(`${prefix}/hotel/1`);
+    await expect(page.locator("html")).toHaveAttribute("lang", lang);
+    await expect(
+      page.getByRole("heading", { name: "Hotel Copacabana Palace" })
+    ).toBeVisible();
+    await page.goto(`${prefix}/confirmation/missing-production-booking`);
+    await expect(page.locator("html")).toHaveAttribute("lang", lang);
+    await expect(
+      page.getByRole("heading", { name: missingBooking })
+    ).toBeVisible();
+  }
 });
 
 test("Chrome reconhece o PWA como instalável", async ({
@@ -119,6 +152,40 @@ test("abre a tela offline e tenta novamente na URL original", async ({
   await context.setOffline(false);
   await page.getByRole("button", { name: "Tentar novamente" }).click();
   await expect(offlineTitle).toHaveCount(0);
+  await expect(page).toHaveURL((url) => url.pathname + url.search === original);
+  await expect(
+    page.getByRole("heading", { name: "Salvador, BA" })
+  ).toBeVisible();
+});
+
+test("localizes offline navigation and preserves the last choice at the root", async ({
+  page,
+  context,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/");
+  await page.waitForFunction(() => navigator.serviceWorker.controller !== null);
+  await page.getByRole("button", { name: "Menu", exact: true }).click();
+  await page.getByRole("button", { name: "English (US)" }).click();
+  await expect(page).toHaveURL(/\/en-US$/);
+  await context.setOffline(true);
+  expect((await page.goto("/"))?.fromServiceWorker()).toBe(true);
+  await expect(page.locator("html")).toHaveAttribute("lang", "en-US");
+  await expect(
+    page.getByRole("heading", { name: "You're offline" })
+  ).toBeVisible();
+  expect((await page.goto("/search"))?.fromServiceWorker()).toBe(true);
+  await expect(
+    page.getByRole("heading", { name: "Você está sem conexão" })
+  ).toBeVisible();
+  const original =
+    "/en-US/search?destination=Salvador%2C+BA&checkIn=2099-01-01&checkOut=2099-01-04&adults=2&children=0&rooms=1";
+  expect((await page.goto(original))?.fromServiceWorker()).toBe(true);
+  await expect(
+    page.getByRole("heading", { name: "You're offline" })
+  ).toBeVisible();
+  await context.setOffline(false);
+  await page.getByRole("button", { name: "Try again" }).click();
   await expect(page).toHaveURL((url) => url.pathname + url.search === original);
   await expect(
     page.getByRole("heading", { name: "Salvador, BA" })

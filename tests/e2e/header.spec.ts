@@ -19,7 +19,11 @@ test("menu mobile exibe navegação e idioma e fecha pelo teclado ou por toque e
     navigation.getByRole("link", { name: "Inspire-se" })
   ).toBeVisible();
   await expect(page.getByText("Português (Brasil)")).toBeVisible();
-  await expect(page.getByText("BRL", { exact: true })).toBeVisible();
+  await expect(
+    page
+      .getByRole("group", { name: "Idioma e moeda" })
+      .getByText("BRL", { exact: true })
+  ).toBeVisible();
   await page.keyboard.press("Tab");
   await expect(
     navigation.getByRole("link", { name: "Encontrar uma estadia" })
@@ -65,7 +69,7 @@ test("links do menu mobile fecham o painel e navegam às seções da home", asyn
     await page.goto("/search");
     await menu.click();
     await navigation.getByRole("link", { name: "Inspire-se" }).click();
-    await expect(page).toHaveURL(/\/#inspiracao$/);
+    await expect(page).toHaveURL(/\/\?lang=pt-BR#inspiracao$/);
     await expect(menu).toHaveAttribute("aria-expanded", "false");
     await expect(inspiration).toBeInViewport();
   } finally {
@@ -77,7 +81,7 @@ test("links do menu mobile fecham o painel e navegam às seções da home", asyn
 
   await menu.click();
   await navigation.getByRole("link", { name: "Encontrar uma estadia" }).click();
-  await expect(page).toHaveURL(/\/#buscar$/);
+  await expect(page).toHaveURL(/\/\?lang=pt-BR#buscar$/);
   await expect(menu).toHaveAttribute("aria-expanded", "false");
   await expect(page.locator("#buscar")).toBeInViewport();
 });

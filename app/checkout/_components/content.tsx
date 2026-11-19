@@ -1,4 +1,5 @@
 "use client";
+import { useLocale } from "@/lib/i18n/client";
 
 import Link from "next/link";
 import { ArrowLeft, LoaderCircle } from "lucide-react";
@@ -48,6 +49,7 @@ const steps = [
 ] as const;
 
 export function CheckoutContent() {
+  const { t } = useLocale();
   const checkout = useCheckout();
   const { selection, query } = checkout;
   if (
@@ -58,8 +60,8 @@ export function CheckoutContent() {
     return <LoadingCards count={2} />;
   if (!selection)
     return (
-      <Feedback title="Escolha sua acomodação">
-        Você será levado à busca para selecionar um quarto.
+      <Feedback title={t("Escolha sua acomodação")}>
+        {t("Você será levado à busca para selecionar um quarto.")}
       </Feedback>
     );
   if (!query.data && query.error)
@@ -67,7 +69,7 @@ export function CheckoutContent() {
       <QueryError
         error={query.error}
         onRetry={() => query.refetch()}
-        title="Não foi possível verificar sua seleção"
+        title={t("Não foi possível verificar sua seleção")}
       />
     );
   if (!query.data) return <LoadingCards count={2} />;
@@ -95,6 +97,7 @@ function CheckoutWizard({
   /** Hotel e quarto devolvidos pela consulta de revalidação do checkout. */
   details: NonNullable<ReturnType<typeof useCheckout>["query"]["data"]>;
 }) {
+  const { t, href } = useLocale();
   const [draft] = useState(() => useBookingStore.getState().draft);
   // Each new mount needs the CPF again, even when the saved step was later.
   const [step, setStep] = useState<CheckoutDraft["step"]>("guests");
@@ -216,16 +219,17 @@ function CheckoutWizard({
     <>
       <Link
         className="mb-6 inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary"
-        href={back}
+        href={href(back)}
       >
-        <ArrowLeft size={15} aria-hidden="true" /> Voltar para os quartos
+        <ArrowLeft size={15} aria-hidden="true" />
+        {" " + t("Voltar para os quartos")}
       </Link>
-      <h1 className="mb-3">Finalize sua reserva</h1>
+      <h1 className="mb-3">{t("Finalize sua reserva")}</h1>
       <p className="mb-6 text-sm text-muted-foreground">
-        Use apenas dados fictícios. Nenhum valor será cobrado.
+        {t("Use apenas dados fictícios. Nenhum valor será cobrado.")}
       </p>
       <ol
-        aria-label="Etapas da reserva"
+        aria-label={t("Etapas da reserva")}
         className="mb-7 grid list-none grid-cols-3 gap-2 text-xs sm:gap-3 sm:text-sm"
       >
         {steps.map(({ id, label }, index) => (
@@ -234,31 +238,32 @@ function CheckoutWizard({
             aria-current={step === id ? "step" : undefined}
             className={`flex flex-wrap items-center gap-2 rounded-md border px-2 py-2 sm:px-3 ${step === id ? "border-primary bg-secondary font-semibold text-primary" : "border-border text-muted-foreground"}`}
           >
-            <span className="font-semibold">{index + 1}</span> {label}
+            <span className="font-semibold">{index + 1}</span> {t(label)}
           </li>
         ))}
       </ol>
       <div className="grid items-start gap-6 min-[900px]:grid-cols-[minmax(0,1fr)_minmax(18rem,24rem)]">
         <section className="min-w-0 space-y-5 rounded-xl border border-border bg-white p-5 sm:p-7">
           <h2 ref={heading} tabIndex={-1} className="text-xl">
-            {steps[activeStep].label}
+            {t(steps[activeStep].label)}
           </h2>
           {checkout.problem && (
             <Feedback
-              title="Sua seleção precisa ser atualizada"
+              title={t("Sua seleção precisa ser atualizada")}
               href={back}
-              linkLabel="Escolher outro quarto"
+              linkLabel={t("Escolher outro quarto")}
             >
-              {checkout.problem}
+              {t(checkout.problem)}
             </Feedback>
           )}
           {checkout.priceChanged && (
             <Alert>
-              <AlertTitle>O preço desta acomodação mudou</AlertTitle>
+              <AlertTitle>{t("O preço desta acomodação mudou")}</AlertTitle>
               <AlertDescription>
                 <p>
-                  Confira o novo total no resumo e aceite a atualização para
-                  continuar.
+                  {t(
+                    "Confira o novo total no resumo e aceite a atualização para continuar."
+                  )}
                 </p>
                 <Button
                   type="button"
@@ -268,7 +273,7 @@ function CheckoutWizard({
                     checkout.acceptPrice();
                   }}
                 >
-                  Aceitar novo preço
+                  {t("Aceitar novo preço")}
                 </Button>
               </AlertDescription>
             </Alert>
@@ -286,7 +291,7 @@ function CheckoutWizard({
                 adults={adults}
                 childCount={children}
               />
-              <Button type="submit">Ir para pagamento</Button>
+              <Button type="submit">{t("Ir para pagamento")}</Button>
             </form>
           )}
           {step === "payment" && (
@@ -301,7 +306,7 @@ function CheckoutWizard({
               <PaymentFieldsForm form={payment} />
               {payment.formState.errors.root?.message && (
                 <p role="alert" className="text-sm text-destructive">
-                  {payment.formState.errors.root.message}
+                  {t(payment.formState.errors.root.message)}
                 </p>
               )}
               <div className="flex flex-wrap gap-2">
@@ -310,9 +315,9 @@ function CheckoutWizard({
                   variant="outline"
                   onClick={() => setStep("guests")}
                 >
-                  Voltar para hóspedes
+                  {t("Voltar para hóspedes")}
                 </Button>
-                <Button type="submit">Simular pagamento</Button>
+                <Button type="submit">{t("Simular pagamento")}</Button>
               </div>
             </form>
           )}
@@ -326,11 +331,16 @@ function CheckoutWizard({
             >
               <div className="space-y-2">
                 <p className="font-semibold text-positive">
-                  Pagamento simulado aprovado
+                  {t("Pagamento simulado aprovado")}
                 </p>
-                <h3 className="text-sm font-semibold">Hóspedes da reserva</h3>
+                <h3 className="text-sm font-semibold">
+                  {t("Hóspedes da reserva")}
+                </h3>
                 <ul className="space-y-1 break-words text-sm">
-                  <li>{getValues("guest.name")} · Titular</li>
+                  <li>
+                    {getValues("guest.name")}
+                    {" " + t("· Titular")}
+                  </li>
                   {getValues("companions").map((name, index) => (
                     <li key={index}>{name}</li>
                   ))}
@@ -340,7 +350,7 @@ function CheckoutWizard({
                 <div className="flex flex-wrap items-start gap-2">
                   <div className="min-w-32 flex-1 text-sm">
                     <CheckoutField
-                      label="Código do cupom"
+                      label={t("Código do cupom")}
                       error={couponError}
                       value={couponEntry}
                       disabled={pending}
@@ -363,16 +373,16 @@ function CheckoutWizard({
                     disabled={pending}
                     onClick={applyCoupon}
                   >
-                    Aplicar cupom
+                    {t("Aplicar cupom")}
                   </Button>
                 </div>
                 <p className="text-sm text-muted-foreground">
-                  Use LUMINA10 para 10% de desconto na hospedagem.
+                  {t("Use LUMINA10 para 10% de desconto na hospedagem.")}
                 </p>
                 {coupon && (
                   <div className="flex flex-wrap items-center gap-2 text-sm">
                     <span role="status" className="font-semibold text-positive">
-                      Cupom {coupon} aplicado
+                      {t("Cupom {code} aplicado", { code: coupon })}
                     </span>
                     <Button
                       type="button"
@@ -380,12 +390,12 @@ function CheckoutWizard({
                       disabled={pending}
                       onClick={removeCoupon}
                     >
-                      Remover cupom
+                      {t("Remover cupom")}
                     </Button>
                   </div>
                 )}
               </div>
-              <Terms policy={policy} />
+              <Terms policy={t(policy)} />
               <div className="flex items-center gap-2 text-sm">
                 <Checkbox
                   id="checkout-terms"
@@ -396,22 +406,23 @@ function CheckoutWizard({
                   disabled={pending || checkout.priceChanged}
                 />
                 <label htmlFor="checkout-terms">
-                  Aceito os termos da reserva
+                  {t("Aceito os termos da reserva")}
                 </label>
               </div>
               {checkout.issue && (
                 <Alert variant="destructive" role="alert">
                   <AlertTitle>
                     {checkout.issue.uncertain
-                      ? "O resultado do envio não pôde ser confirmado"
-                      : "Não foi possível concluir"}
+                      ? t("O resultado do envio não pôde ser confirmado")
+                      : t("Não foi possível concluir")}
                   </AlertTitle>
                   <AlertDescription>
-                    {checkout.issue.message}
+                    {t(checkout.issue.message)}
                     {checkout.issue.uncertain && (
                       <p>
-                        A reserva pode ter sido criada. Uma nova tentativa pode
-                        gerar duplicidade.
+                        {t(
+                          "A reserva pode ter sido criada. Uma nova tentativa pode gerar duplicidade."
+                        )}
                       </p>
                     )}
                   </AlertDescription>
@@ -424,7 +435,7 @@ function CheckoutWizard({
                   disabled={pending}
                   onClick={() => setStep("payment")}
                 >
-                  Voltar ao pagamento
+                  {t("Voltar ao pagamento")}
                 </Button>
                 <Button
                   type="submit"
@@ -442,10 +453,10 @@ function CheckoutWizard({
                         className="animate-spin"
                         aria-hidden="true"
                       />{" "}
-                      Confirmando…
+                      {t("Confirmando…")}
                     </>
                   ) : (
-                    "Confirmar reserva simulada"
+                    t("Confirmar reserva simulada")
                   )}
                 </Button>
               </div>

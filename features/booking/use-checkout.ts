@@ -5,6 +5,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { getHotel, getRoom } from "@/features/hotels/api";
 import { cancellationLabels } from "@/features/hotels/model";
 import { ApiError } from "@/lib/api/client";
+import { useLocale } from "@/lib/i18n/client";
 import { useBookingStore } from "./store";
 import { createBooking } from "./api";
 import {
@@ -27,6 +28,7 @@ function requireConnection(signal?: AbortSignal) {
 }
 
 export function useCheckout() {
+  const { href } = useLocale();
   const router = useRouter();
   const client = useQueryClient();
   const selection = useBookingStore((state) => state.selection);
@@ -52,8 +54,9 @@ export function useCheckout() {
     refetchOnMount: "always",
   });
   useEffect(() => {
-    if (isReady && !selection && !lock.current) router.replace("/#buscar");
-  }, [isReady, selection, router]);
+    if (isReady && !selection && !lock.current)
+      router.replace(href("/#buscar"));
+  }, [isReady, selection, router, href]);
   const mutation = useMutation({
     networkMode: "always",
     retry: false,
@@ -131,12 +134,13 @@ export function useCheckout() {
   async function submit(input: CheckoutSubmission) {
     if (lock.current || !selection) return;
     lock.current = true;
+    useBookingStore.getState().setSubmitting(true);
     setIssue(null);
     try {
       requireConnection();
       const booking = await mutation.mutateAsync(input);
       useBookingStore.getState().complete(selection);
-      router.replace(`/confirmation/${encodeURIComponent(booking.id)}`);
+      router.replace(href(`/confirmation/${encodeURIComponent(booking.id)}`));
     } catch (error) {
       setIssue({
         message:
@@ -146,6 +150,8 @@ export function useCheckout() {
         uncertain: error instanceof ApiError && error.uncertain,
       });
       lock.current = false;
+    } finally {
+      useBookingStore.getState().setSubmitting(false);
     }
   }
   const problem =

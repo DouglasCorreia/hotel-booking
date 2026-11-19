@@ -1,6 +1,8 @@
+import { useLocale } from "@/lib/i18n/client";
 import { CalendarDays, Users, BedDouble, Check } from "lucide-react";
 import { Photo } from "@/components/photo";
-import { displayDate, money } from "@/lib/format";
+import { localizeCatalogText } from "@/lib/i18n/messages";
+import { cancellationLabels } from "@/features/hotels/model";
 import {
   nightsBetween,
   calculateTotal,
@@ -31,6 +33,14 @@ export function StaySummary({
   /** Composição da revisão ou da reserva confirmada. Quando presente, define o total exibido. */
   pricing?: PriceBreakdown;
 }) {
+  const { t, locale, catalog, money, displayDate, quantity } = useLocale();
+  const roomName = localizeCatalogText(stay.roomName, locale, catalog);
+  const knownPolicy = Object.values(cancellationLabels).some(
+    (label) => label === stay.cancellationPolicy
+  );
+  const policy = knownPolicy
+    ? t(stay.cancellationPolicy)
+    : stay.cancellationPolicy;
   const nights = nightsBetween(stay.checkIn, stay.checkOut);
   const total =
     pricing?.total ??
@@ -45,7 +55,7 @@ export function StaySummary({
       />
       <div className="p-[25px] [&_h2]:text-[20px] [&_h2]:mb-2 [&_.eyebrow]:text-[9px] [&_.eyebrow]:mb-2 max-[1000.01px]:p-5">
         <p className="eyebrow text-primary text-[11px] font-[650] tracking-[0.1em] uppercase mb-3">
-          Sua estadia
+          {t("Sua estadia")}
         </p>
         <h2>{stay.hotelName}</h2>
         <p className="muted text-muted-foreground text-[10px] mb-5.5">
@@ -63,57 +73,63 @@ export function StaySummary({
         </div>
         <p className="flex items-center gap-2.5 text-[11px] mb-3.5 [&_svg]:shrink-0 [&_svg]:text-muted-foreground">
           <CalendarDays size={17} aria-hidden="true" />
-          {nights} {nights === 1 ? "noite" : "noites"}
+          {quantity(nights, "{count} noite", "{count} noites")}
         </p>
         <p className="flex items-center gap-2.5 text-[11px] mb-3.5 [&_svg]:shrink-0 [&_svg]:text-muted-foreground">
           <BedDouble size={17} aria-hidden="true" />
-          {stay.rooms} quarto(s) · {stay.roomName}
+          {quantity(stay.rooms, "{count} quarto", "{count} quartos")} ·{" "}
+          <span lang={roomName.lang}>{roomName.text}</span>
         </p>
         <p className="flex items-center gap-2.5 text-[11px] mb-3.5 [&_svg]:shrink-0 [&_svg]:text-muted-foreground">
           <Users size={17} aria-hidden="true" />
-          {stay.adults} adulto(s)
-          {stay.children > 0 && ` · ${stay.children} criança(s)`}
+          {quantity(stay.adults, "{count} adulto", "{count} adultos")}
+          {stay.children > 0 &&
+            ` · ${quantity(stay.children, "{count} criança", "{count} crianças")}`}
         </p>
         <p className="flex items-center gap-2 text-[10px] text-positive my-[23px]">
           <Check size={17} aria-hidden="true" />
-          {stay.cancellationPolicy}
+          <span lang={knownPolicy ? locale : "pt-BR"}>{policy}</span>
         </p>
         <div className="flex justify-between gap-2.5 border-t border-t-border pt-5 text-[10px] text-muted-foreground [&_strong]:text-foreground [&_strong]:font-[550] [&_strong]:whitespace-nowrap">
           <span>
             {pricing && (
               <span className="block font-semibold text-foreground">
-                Subtotal da hospedagem
+                {t("Subtotal da hospedagem")}
               </span>
             )}
-            {money(stay.pricePerNight)} × {nights} noite(s) × {stay.rooms}{" "}
-            quarto(s)
+            {money(stay.pricePerNight)} ×{" "}
+            {quantity(nights, "{count} noite", "{count} noites")} ×{" "}
+            {quantity(stay.rooms, "{count} quarto", "{count} quartos")}
           </span>
           <strong>{money(pricing?.subtotal ?? total)}</strong>
         </div>
         {pricing && (
           <dl className="mt-3 space-y-2 text-xs [&>div]:flex [&>div]:justify-between [&>div]:gap-2 [&_dd]:font-semibold">
             <div>
-              <dt>Desconto{pricing.coupon && ` (${pricing.coupon})`}</dt>
+              <dt>
+                {t("Desconto")}
+                {pricing.coupon && ` (${pricing.coupon})`}
+              </dt>
               <dd>
                 {pricing.discount ? `−${money(pricing.discount)}` : money(0)}
               </dd>
             </div>
             <div>
-              <dt>Taxa de serviço simulada</dt>
+              <dt>{t("Taxa de serviço simulada")}</dt>
               <dd>{money(pricing.serviceFee)}</dd>
             </div>
             <div>
-              <dt>Imposto simulado</dt>
+              <dt>{t("Imposto simulado")}</dt>
               <dd>{money(pricing.tax)}</dd>
             </div>
           </dl>
         )}
         <div className="flex justify-between items-center gap-[15px] mt-5.5 [&_>_span]:text-[12px] [&_>_span]:font-semibold [&_>_strong]:text-primary [&_>_strong]:text-[24px] [&_>_strong]:font-[750] [&_>_strong]:tracking-[-0.04em] [&_>_strong]:whitespace-nowrap max-[1000.01px]:[&_>_strong]:text-[21px] max-[760.01px]:[&_>_strong]:text-[26px] max-[360.01px]:[&_>_strong]:text-[22px]">
-          <span>Total da estadia</span>
+          <span>{t("Total da estadia")}</span>
           <strong>{money(total)}</strong>
         </div>
         <p className="text-[9px] text-muted-foreground text-right [margin:5px_0_0]">
-          Reserva demonstrativa. Nenhum valor será cobrado.
+          {t("Reserva demonstrativa. Nenhum valor será cobrado.")}
         </p>
       </div>
     </aside>

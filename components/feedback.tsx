@@ -1,4 +1,5 @@
 "use client";
+import { useLocale } from "@/lib/i18n/client";
 import Link from "next/link";
 import { CircleAlert, SearchX, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -26,6 +27,7 @@ export function Feedback({
   /** Usa o ícone de lista vazia e anuncia o conteúdo como status. O padrão é alerta. */
   isEmpty?: boolean;
 }) {
+  const { t, href: localizedHref } = useLocale();
   const Icon = isEmpty ? SearchX : CircleAlert;
   return (
     <section
@@ -36,11 +38,11 @@ export function Feedback({
       <h2>{title}</h2>
       <div className="muted text-muted-foreground">{children}</div>
       <div className="flex flex-wrap justify-center gap-3 mt-2 max-[760.01px]:flex-col max-[760.01px]:w-full">
-        {onRetry && <Button onClick={onRetry}>Tentar novamente</Button>}
+        {onRetry && <Button onClick={onRetry}>{t("Tentar novamente")}</Button>}
         <Button variant="outline" asChild>
-          <Link href={href}>
+          <Link href={localizedHref(href)}>
             <ArrowLeft aria-hidden="true" />
-            {linkLabel}
+            {t(linkLabel)}
           </Link>
         </Button>
       </div>
@@ -59,24 +61,26 @@ export function QueryError({
   /** Título para outras falhas. O padrão é “Não foi possível carregar”. */
   title?: string;
 }) {
+  const { t } = useLocale();
   return (
     <Feedback
       title={
         error instanceof ApiError && error.status === 404
-          ? "Registro não encontrado"
-          : title
+          ? t("Registro não encontrado")
+          : t(title)
       }
       onRetry={onRetry}
     >
-      {error.message}
+      {t(error.message)}
     </Feedback>
   );
 }
 export function LoadingCards({ count = 3 }: { count?: number }) {
+  const { t } = useLocale();
   return (
     <div
       className="grid gap-5"
-      aria-label="Carregando hospedagens"
+      aria-label={t("Carregando hospedagens")}
       role="status"
     >
       {Array.from({ length: count }, (_, i) => (

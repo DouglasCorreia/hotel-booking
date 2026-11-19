@@ -1,9 +1,11 @@
 "use client";
+import { useLocale } from "@/lib/i18n/client";
 
 import { useEffect } from "react";
 import { useOnline } from "@/lib/use-online";
 
 export function PwaStatus() {
+  const { t } = useLocale();
   const isOnline = useOnline();
 
   useEffect(() => {
@@ -29,8 +31,9 @@ export function PwaStatus() {
     <div role="status" aria-atomic="true">
       {!isOnline && (
         <p className="border-b border-border bg-secondary px-4 py-2 text-center text-sm text-secondary-foreground">
-          Você está sem conexão. Reconecte-se para buscar hotéis ou confirmar
-          sua reserva.
+          {t(
+            "Você está sem conexão. Reconecte-se para buscar hotéis ou confirmar sua reserva."
+          )}
         </p>
       )}
     </div>

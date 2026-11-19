@@ -1,12 +1,15 @@
 import type { MetadataRoute } from "next";
+import type { Locale } from "@/lib/i18n/routing";
 
-export default function manifest(): MetadataRoute.Manifest {
-  return {
+export function serveManifest(lang: Locale) {
+  const manifest: MetadataRoute.Manifest = {
     name: "Lumina Hotels",
     short_name: "Lumina",
     description:
-      "Explore destinos do Brasil, compare hotéis e simule uma reserva.",
-    lang: "pt-BR",
+      lang === "en-US"
+        ? "Explore destinations in Brazil, compare hotels, and try a simulated booking."
+        : "Explore destinos do Brasil, compare hotéis e simule uma reserva.",
+    lang,
     id: "/",
     start_url: "/",
     scope: "/",
@@ -34,4 +37,7 @@ export default function manifest(): MetadataRoute.Manifest {
       },
     ],
   };
+  return Response.json(manifest, {
+    headers: { "Content-Type": "application/manifest+json" },
+  });
 }

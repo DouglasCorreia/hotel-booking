@@ -1,4 +1,5 @@
 "use client";
+import { useLocale } from "@/lib/i18n/client";
 import { useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -57,6 +58,7 @@ export function FiltersForm({
   /** Fecha o painel mobile após aplicar ou limpar os filtros. */
   onCommit?: () => void;
 }) {
+  const { t, href } = useLocale();
   const router = useRouter();
   const {
     register,
@@ -72,7 +74,7 @@ export function FiltersForm({
     >
       <h2 id="filters-heading">
         <SlidersHorizontal size={17} aria-hidden="true" />
-        Encontre seu ideal
+        {t("Encontre seu ideal")}
       </h2>
       <FormProvider {...form}>
         <form
@@ -80,32 +82,32 @@ export function FiltersForm({
             const applied = { ...values, page: 1 };
             form.reset(applied);
             onCommit?.();
-            router.push(`/search?${searchParamsFor(search, applied)}`);
+            router.push(href(`/search?${searchParamsFor(search, applied)}`));
           })}
           noValidate
         >
           <FieldGroup>
             <PriceFilter options={options} />
             <Field>
-              <FieldLabel htmlFor="rating">Avaliação mínima</FieldLabel>
+              <FieldLabel htmlFor="rating">{t("Avaliação mínima")}</FieldLabel>
               <select
                 className="block w-full border border-input rounded-[6px] min-h-[38px] text-[11px] text-foreground bg-white p-2"
                 id="rating"
                 {...register("rating", { setValueAs: number })}
               >
-                <option value="">Todas as avaliações</option>
-                <option value="3">3 ou mais</option>
-                <option value="4">4 ou mais</option>
-                <option value="4.5">4,5 ou mais</option>
+                <option value="">{t("Todas as avaliações")}</option>
+                <option value="3">{t("3 ou mais")}</option>
+                <option value="4">{t("4 ou mais")}</option>
+                <option value="4.5">{t("4,5 ou mais")}</option>
               </select>
             </Field>
             <FieldSet className="filter-options-set">
-              <FieldLegend>Comodidades</FieldLegend>
+              <FieldLegend>{t("Comodidades")}</FieldLegend>
               <p
                 className="m-0 text-muted-foreground text-[10px] leading-[1.6]"
                 id="amenities-hint"
               >
-                A hospedagem deve oferecer todas as opções marcadas.
+                {t("A hospedagem deve oferecer todas as opções marcadas.")}
               </p>
               <Controller
                 name="amenities"
@@ -141,7 +143,7 @@ export function FiltersForm({
                             }
                           />
                           <FieldLabel htmlFor={`amenity-${value}`}>
-                            {amenityLabels[value]}
+                            {t(amenityLabels[value])}
                           </FieldLabel>
                         </Field>
                       ))}
@@ -150,12 +152,12 @@ export function FiltersForm({
               />
             </FieldSet>
             <FieldSet className="filter-options-set">
-              <FieldLegend>Tipo de propriedade</FieldLegend>
+              <FieldLegend>{t("Tipo de propriedade")}</FieldLegend>
               <p
                 className="m-0 text-muted-foreground text-[10px] leading-[1.6]"
                 id="property-types-hint"
               >
-                Mostrar qualquer um dos tipos marcados.
+                {t("Mostrar qualquer um dos tipos marcados.")}
               </p>
               <Controller
                 name="propertyTypes"
@@ -182,7 +184,7 @@ export function FiltersForm({
                           }
                         />
                         <FieldLabel htmlFor={`property-${value}`}>
-                          {propertyLabels[value]}
+                          {t(propertyLabels[value])}
                         </FieldLabel>
                       </Field>
                     ))}
@@ -191,16 +193,16 @@ export function FiltersForm({
               />
             </FieldSet>
             <Field>
-              <FieldLabel htmlFor="sort">Ordenar por</FieldLabel>
+              <FieldLabel htmlFor="sort">{t("Ordenar por")}</FieldLabel>
               <select
                 className="block w-full border border-input rounded-[6px] min-h-[38px] text-[11px] text-foreground bg-white p-2"
                 id="sort"
                 {...register("sort")}
               >
-                <option value="price-asc">Menor preço</option>
-                <option value="price-desc">Maior preço</option>
-                <option value="rating">Melhor avaliação</option>
-                <option value="popular">Mais avaliações</option>
+                <option value="price-asc">{t("Menor preço")}</option>
+                <option value="price-desc">{t("Maior preço")}</option>
+                <option value="rating">{t("Melhor avaliação")}</option>
+                <option value="popular">{t("Mais avaliações")}</option>
               </select>
             </Field>
             <div className="flex flex-col gap-2.5 col-[1_/_-1]">
@@ -209,19 +211,19 @@ export function FiltersForm({
                 role="status"
               >
                 {isDirty
-                  ? "Alterações não aplicadas"
-                  : "Ajuste suas preferências e aplique."}
+                  ? t("Alterações não aplicadas")
+                  : t("Ajuste suas preferências e aplique.")}
               </p>
-              <Button type="submit">Aplicar filtros</Button>
+              <Button type="submit">{t("Aplicar filtros")}</Button>
               <Button variant="ghost" asChild>
                 <Link
-                  href={`/search?${searchParamsFor(search)}`}
+                  href={href(`/search?${searchParamsFor(search)}`)}
                   onNavigate={() => {
                     form.reset(emptyFilters);
                     onCommit?.();
                   }}
                 >
-                  Limpar filtros
+                  {t("Limpar filtros")}
                 </Link>
               </Button>
             </div>
@@ -229,7 +231,9 @@ export function FiltersForm({
         </form>
       </FormProvider>
       <p className="border-t border-t-border pt-5.5 text-muted-foreground text-[10px] mt-[25px] mb-0 max-[760.01px]:hidden">
-        A diária exibida é a partir do quarto mais econômico de cada hotel.
+        {t(
+          "A diária exibida é a partir do quarto mais econômico de cada hotel."
+        )}
       </p>
     </aside>
   );

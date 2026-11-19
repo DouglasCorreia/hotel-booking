@@ -24,12 +24,18 @@ export const searchSchema = z
       .min(1, "Selecione um destino nas sugestões."),
     checkIn: calendarDate,
     checkOut: calendarDate,
-    adults: z.number().int().positive("Informe pelo menos um adulto."),
+    adults: z
+      .number({ error: "Informe pelo menos um adulto." })
+      .int("Informe um número inteiro.")
+      .positive("Informe pelo menos um adulto."),
     children: z
-      .number()
-      .int()
+      .number({ error: "Informe um número inteiro." })
+      .int("Informe um número inteiro.")
       .nonnegative("A quantidade não pode ser negativa."),
-    rooms: z.number().int().positive("Informe pelo menos um quarto."),
+    rooms: z
+      .number({ error: "Informe pelo menos um quarto." })
+      .int("Informe um número inteiro.")
+      .positive("Informe pelo menos um quarto."),
   })
   .superRefine((value, context) => {
     if (value.checkIn < localToday())

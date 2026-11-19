@@ -1,13 +1,17 @@
 import { Suspense } from "react";
 import { LoadingCards } from "@/components/feedback";
-import { ConfirmationContent } from "./_components/content";
+import { ConfirmationContent } from "@/app/confirmation/[bookingId]/_components/content";
+import { getTranslator } from "@/lib/i18n/server";
 
-export const metadata = {
-  title: "Confirmação da reserva simulada",
-  robots: { index: false, follow: false },
-};
+export async function generateMetadata() {
+  const t = await getTranslator();
+  return {
+    title: t("Confirmação da reserva simulada"),
+    robots: { index: false, follow: false },
+  };
+}
 
-type ConfirmationPageProps = PageProps<"/confirmation/[bookingId]">;
+type ConfirmationPageProps = PageProps<"/[lang]/confirmation/[bookingId]">;
 
 async function ConfirmationDetails({
   params,

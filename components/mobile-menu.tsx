@@ -1,12 +1,15 @@
 "use client";
+import { useLocale } from "@/lib/i18n/client";
 
 import { useEffect, useId, useRef, useState } from "react";
-import { Globe2, Menu, X } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { HeaderLinks } from "./header-links";
+import { LanguageSwitch } from "./language-switch";
 
 export function MobileMenu() {
+  const { t } = useLocale();
   const [open, setOpen] = useState(false);
   const panelId = useId();
   const menu = useRef<HTMLDivElement>(null);
@@ -31,7 +34,8 @@ export function MobileMenu() {
     }
 
     function handleEscape(event: KeyboardEvent) {
-      if (event.key !== "Escape") return;
+      if (event.key !== "Escape" || menu.current?.querySelector("dialog[open]"))
+        return;
       event.preventDefault();
       setOpen(false);
       trigger.current?.focus({ preventScroll: true });
@@ -52,7 +56,11 @@ export function MobileMenu() {
       ref={menu}
       className="ml-auto hidden max-[760.01px]:block"
       onBlur={({ currentTarget, relatedTarget }) => {
-        if (relatedTarget && !currentTarget.contains(relatedTarget)) {
+        if (
+          relatedTarget &&
+          !currentTarget.contains(relatedTarget) &&
+          !currentTarget.querySelector("dialog[open]")
+        ) {
           setOpen(false);
         }
       }}
@@ -75,7 +83,7 @@ export function MobileMenu() {
         className="absolute inset-x-0 top-full z-20 max-h-[calc(100dvh-75px)] overflow-y-auto bg-card text-card-foreground shadow-md"
       >
         <div className="mx-auto w-[calc(100%_-_36px)] py-3 max-[360.01px]:w-[calc(100%_-_28px)]">
-          <nav aria-label="Navegação principal" className="flex flex-col">
+          <nav aria-label={t("Navegação principal")} className="flex flex-col">
             <HeaderLinks
               native
               className="flex min-h-12 items-center justify-between gap-3 rounded-md px-3 text-base font-semibold hover:bg-secondary focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring"
@@ -94,15 +102,7 @@ export function MobileMenu() {
             />
           </nav>
           <Separator className="my-2" />
-          <div
-            role="group"
-            aria-label="Idioma e moeda"
-            className="flex min-h-11 items-center gap-2.5 px-3 text-sm text-muted-foreground"
-          >
-            <Globe2 size={17} aria-hidden="true" />
-            <span>Português (Brasil)</span>
-            <span className="ml-auto">BRL</span>
-          </div>
+          <LanguageSwitch className="flex min-h-11 flex-wrap items-center gap-2.5 px-3 text-sm text-muted-foreground" />
         </div>
       </div>
     </div>
